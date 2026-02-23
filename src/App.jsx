@@ -108,6 +108,7 @@ const globalCss = `
   .nav__links { display: none; align-items: center; list-style: none; gap: 2rem; }
   .nav__link { color: #4a4035; text-decoration: none; font-size: .9rem; }
   .nav__cta { background: #1a1410; color: #f5f0e8 !important; padding: .5rem 1.25rem; font-size: .82rem !important; letter-spacing: .08em; text-transform: uppercase; border: none; cursor: pointer; font-family: inherit; }
+  .nav__mobile-cta { display: block; background: #1a1410; color: #f5f0e8; padding: .5rem 1rem; font-size: .8rem; letter-spacing: .06em; text-transform: uppercase; border: none; cursor: pointer; font-family: inherit; }
 
   /* HERO */
   .hero { padding: 5rem 0 3rem; }
@@ -266,6 +267,7 @@ const globalCss = `
   /* DESKTOP ENHANCEMENTS */
   @media(min-width: 768px) {
     .nav__links { display: flex !important; }
+    .nav__mobile-cta { display: none !important; }
     .container { padding: 0 2rem; }
     .container--sm { padding: 0 2rem; }
     .nav__inner { padding: 1.1rem 2rem; }
@@ -560,6 +562,7 @@ function Landing({ onStart }) {
       <nav className="nav">
         <div className="nav__inner">
           <button className="nav__logo" onClick={onStart}>Lex<span style={{color:"#b8966a"}}>Gen</span></button>
+          <button className="nav__mobile-cta" onClick={onStart}>Générer — 9 €</button>
           <ul className="nav__links">
             <li><a href="#comment" className="nav__link">Comment ça marche</a></li>
             <li><a href="#tarif" className="nav__link">Tarif</a></li>
