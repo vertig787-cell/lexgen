@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const STRIPE_KEY = "pk_test_51RxqHxDiHCfv0XMm4yoGqT4wj4jZlLQZBcmM6LcqF3Y10Vz1fmiA9oRHZ9jnIYg5pLLubYA8QYB4RcnVAvZ9LuTX00bEGPqjod";
+const STRIPE_KEY = "pk_live_51RxqHVDL6MXKKnhYL9SpgIBrjQjjf3g8hAjHschu7f2Tb19f5xxJfb41PspvGMaQh0XeGEfIXWjqmEif1jL0UqrA00SyQy65Ob";
 
 const STEPS = [
   { id:"company", title:"Votre entreprise", icon:"🏢", fields:[
@@ -313,10 +313,32 @@ function PaymentForm({ onSuccess, onCancel, formData }) {
     setCardError(""); setProcessing(true);
     const num=cardNumber.replace(/\s/g,""), exp=expiry.replace(/\D/g,"");
     const month=parseInt(exp.slice(0,2)), year=parseInt("20"+exp.slice(2,4)), now=new Date();
-    if (num==="4000000000000002") { setTimeout(()=>{setCardError("Votre carte a été refusée.");setProcessing(false);},1200); return; }
-    if (month<1||month>12) { setTimeout(()=>{setCardError("Date d'expiration invalide.");setProcessing(false);},600); return; }
-    if (year<now.getFullYear()||(year===now.getFullYear()&&month<now.getMonth()+1)) { setTimeout(()=>{setCardError("Votre carte est expirée.");setProcessing(false);},600); return; }
-    setTimeout(()=>{ setProcessing(false); onSuccess(); }, 1500);
+    if (month<1||month>12) { setCardError("Date d'expiration invalide."); setProcessing(false); return; }
+    if (year<now.getFullYear()||(year===now.getFullYear()&&month<now.getMonth()+1)) { setCardError("Votre carte est expirée."); setProcessing(false); return; }
+    try {
+      const res = await fetch("/api/payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          cardNumber: num,
+          expMonth: month,
+          expYear: year,
+          cvc: cvc,
+          companyName: formData.companyName || "",
+        }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setProcessing(false);
+        onSuccess();
+      } else {
+        setCardError(data.error || "Paiement refusé. Vérifiez vos informations.");
+        setProcessing(false);
+      }
+    } catch(e) {
+      setCardError("Erreur réseau. Veuillez réessayer.");
+      setProcessing(false);
+    }
   };
 
   return (
