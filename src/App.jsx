@@ -1,10 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 const STRIPE_KEY = "pk_test_51RxqHxDiHCfv0XMm4yoGqT4wj4jZlLQZBcmM6LcqF3Y10Vz1fmiA9oRHZ9jnIYg5pLLubYA8QYB4RcnVAvZ9LuTX00bEGPqjod";
 
-// ─────────────────────────────────────────────
-// DATA
-// ─────────────────────────────────────────────
 const STEPS = [
   { id:"company", title:"Votre entreprise", icon:"🏢", fields:[
     {key:"companyName",label:"Nom de l'entreprise",type:"text",placeholder:"ex: MonShop SAS"},
@@ -92,352 +89,212 @@ Les présentes CGV sont régies par le droit français.
 
 *Document généré le {date} – À titre informatif. Non substituable à un conseil juridique professionnel.*`;
 
-// ─────────────────────────────────────────────
-// STYLES PARTAGÉS
-// ─────────────────────────────────────────────
-const C = {
-  ink:"#1a1410", inkLight:"#4a4035", cream:"#f5f0e8", creamDark:"#ede6d6",
-  gold:"#b8966a", goldLight:"#d4b896", dark:"#0a0a0f", darkCard:"#13131a",
-};
+const globalCss = `
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=EB+Garamond:wght@400;500&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'EB Garamond', Georgia, serif; background: #f5f0e8; color: #1a1410; overflow-x: hidden; }
+  img, svg { display: block; max-width: 100%; }
 
-const css = `
-  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
-  *{box-sizing:border-box;margin:0;padding:0;}
-  html{scroll-behavior:smooth;}
-  body{overflow-x:hidden;width:100%;max-width:100vw;}
-  .reveal{opacity:0;transform:translateY(28px);transition:opacity 0.7s ease,transform 0.7s ease;}
-  .reveal.vis{opacity:1;transform:translateY(0);}
-  .d1{transition-delay:0.1s}.d2{transition-delay:0.2s}.d3{transition-delay:0.3s}
-  @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-  @keyframes floatDoc{0%,100%{transform:rotate(-2deg) translateY(0)}50%{transform:rotate(-2deg) translateY(-14px)}}
-  @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-  .hero-anim-1{opacity:0;animation:fadeUp 0.8s 0.2s forwards;}
-  .hero-anim-2{opacity:0;animation:fadeUp 0.8s 0.4s forwards;}
-  .hero-anim-3{opacity:0;animation:fadeUp 0.8s 0.6s forwards;}
-  .hero-anim-4{opacity:0;animation:fadeUp 0.8s 0.8s forwards;}
-  .hero-anim-5{opacity:0;animation:fadeUp 0.8s 1.0s forwards;}
-  .doc-float{animation:floatDoc 4s ease-in-out infinite;}
-  .btn-primary{background:#1a1410;color:#f5f0e8;padding:1rem 2.5rem;font-family:'EB Garamond',serif;font-size:1rem;letter-spacing:0.08em;border:2px solid #1a1410;cursor:pointer;text-decoration:none;display:inline-block;transition:all 0.25s;}
-  .btn-primary:hover{background:#b8966a;border-color:#b8966a;}
-  .faq-a{max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s;}
-  .faq-open .faq-a{max-height:300px;padding-top:1rem;}
-  .faq-icon{transition:transform 0.3s;}
-  .faq-open .faq-icon{transform:rotate(45deg);}
-  .pain-item{transition:border-color 0.2s,transform 0.2s;}
-  .pain-item:hover{border-color:#b8966a!important;}
-  .testi-card{transition:transform 0.2s,box-shadow 0.2s;}
-  .step-num{transition:background 0.3s;}
-  .step:hover .step-num{background:#b8966a!important;}
-  select option{background:#1a1410;color:#f5f0e8;}
+  /* LAYOUT */
+  .container { width: 100%; max-width: 1100px; margin: 0 auto; padding: 0 1.25rem; }
+  .container--sm { width: 100%; max-width: 720px; margin: 0 auto; padding: 0 1.25rem; }
 
-  @media(max-width:768px){
-    /* NAV */
-    nav{padding:1rem 1.25rem!important;}
-    .nav-links{display:none!important;}
+  /* NAV */
+  .nav { position: fixed; top: 0; left: 0; right: 0; z-index: 100; background: #f5f0e8; border-bottom: 1px solid rgba(26,20,16,.12); }
+  .nav__inner { display: flex; justify-content: space-between; align-items: center; padding: .875rem 1.25rem; }
+  .nav__logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 900; color: #1a1410; text-decoration: none; cursor: pointer; background: none; border: none; }
+  .nav__logo span { color: #b8966a; }
+  .nav__links { display: flex; gap: 2rem; align-items: center; list-style: none; }
+  .nav__link { color: #4a4035; text-decoration: none; font-size: .9rem; }
+  .nav__cta { background: #1a1410; color: #f5f0e8 !important; padding: .5rem 1.25rem; font-size: .82rem !important; letter-spacing: .08em; text-transform: uppercase; border: none; cursor: pointer; font-family: inherit; }
 
-    /* HERO */
-    .hero-section{display:block!important;padding-top:70px!important;}
-    .hero-left{padding:2.5rem 1.25rem 3rem!important;}
-    .hero-right{display:none!important;}
-    h1{font-size:2.2rem!important;line-height:1.1!important;}
-    .hero-sub{font-size:1rem!important;margin-bottom:2rem!important;}
-    .hero-cta-group{flex-direction:column!important;align-items:flex-start!important;gap:1rem!important;}
-    .btn-primary{width:100%!important;text-align:center!important;padding:1rem!important;}
-    .hero-proof{gap:1.25rem!important;margin-top:2.5rem!important;flex-wrap:wrap!important;}
+  /* HERO */
+  .hero { padding: 5rem 0 3rem; }
+  .hero__eyebrow { display: flex; align-items: center; gap: .75rem; font-size: .75rem; letter-spacing: .2em; text-transform: uppercase; color: #b8966a; margin-bottom: 1.5rem; }
+  .hero__eyebrow::before { content: ''; width: 24px; height: 1px; background: #b8966a; flex-shrink: 0; }
+  .hero__title { font-family: 'Playfair Display', serif; font-size: clamp(2.2rem, 6vw, 4.5rem); font-weight: 900; line-height: 1.05; letter-spacing: -.02em; margin-bottom: 1.25rem; }
+  .hero__title em { font-style: italic; color: #b8966a; }
+  .hero__sub { font-size: 1.1rem; color: #4a4035; line-height: 1.7; max-width: 520px; margin-bottom: 2rem; }
+  .hero__actions { display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; margin-bottom: 2.5rem; }
+  .hero__proof { display: flex; flex-wrap: wrap; gap: 1.5rem; padding-top: 2rem; border-top: 1px solid rgba(26,20,16,.1); }
+  .proof__item { display: flex; flex-direction: column; }
+  .proof__num { font-family: 'Playfair Display', serif; font-size: 1.75rem; font-weight: 700; line-height: 1; }
+  .proof__label { font-size: .78rem; color: #4a4035; margin-top: .2rem; }
 
-    /* TRUST BAR */
-    .trust-bar-inner{padding:1rem 1.25rem!important;gap:0.75rem 1.5rem!important;flex-wrap:wrap!important;}
+  /* BUTTONS */
+  .btn { display: inline-block; padding: .875rem 2rem; font-family: 'EB Garamond', serif; font-size: 1rem; letter-spacing: .06em; cursor: pointer; border: 2px solid transparent; text-decoration: none; text-align: center; transition: all .2s; }
+  .btn--dark { background: #1a1410; color: #f5f0e8; border-color: #1a1410; }
+  .btn--dark:hover { background: #b8966a; border-color: #b8966a; }
+  .btn--outline { background: transparent; color: #1a1410; border-color: #1a1410; }
+  .btn--outline:hover { background: #1a1410; color: #f5f0e8; }
+  .btn--gold { background: #d4b896; color: #1a1410; border-color: #d4b896; }
+  .btn--gold:hover { background: #f5f0e8; border-color: #f5f0e8; }
+  .btn--full { width: 100%; }
 
-    /* SECTIONS */
-    .problem-inner{display:block!important;padding:3.5rem 1.25rem!important;}
-    .problem-quote{display:none!important;}
-    .steps-section{padding:3.5rem 1.25rem!important;}
-    .steps-grid{display:block!important;}
-    .steps-line{display:none!important;}
-    .step{display:flex!important;gap:1rem!important;align-items:flex-start!important;padding:0 0 2rem!important;text-align:left!important;}
-    .step-num{margin:0!important;flex-shrink:0!important;width:3rem!important;height:3rem!important;font-size:1rem!important;}
-    .testi-section{padding:3.5rem 1.25rem!important;}
-    .testi-grid{display:block!important;}
-    .testi-card{margin-bottom:1.25rem!important;}
-    .pricing-section{padding:3.5rem 1.25rem!important;}
-    .pricing-inner{display:block!important;}
-    .pricing-text{margin-bottom:2rem!important;}
-    .faq-section{padding:3.5rem 1.25rem!important;}
-    .cta-section{padding:3.5rem 1.25rem!important;}
-    .section-inner{padding:3.5rem 1.25rem!important;}
-    h2{font-size:1.8rem!important;}
+  /* TRUST BAR */
+  .trust { background: #1a1410; color: #f5f0e8; padding: .875rem 1.25rem; }
+  .trust__inner { display: flex; flex-wrap: wrap; justify-content: center; gap: .75rem 2rem; font-size: .82rem; letter-spacing: .06em; opacity: .85; }
+  .trust__item { display: flex; align-items: center; gap: .5rem; }
 
-    /* FOOTER */
-    .footer-inner{flex-direction:column!important;gap:1rem!important;text-align:center!important;padding:2rem 1.25rem!important;}
-    .footer-links{justify-content:center!important;}
+  /* SECTIONS */
+  .section { padding: 4rem 0; }
+  .section--dark { background: #1a1410; color: #f5f0e8; }
+  .section--tinted { background: #ede6d6; }
+  .section__label { display: flex; align-items: center; gap: .75rem; font-size: .72rem; letter-spacing: .22em; text-transform: uppercase; color: #b8966a; margin-bottom: 1rem; }
+  .section__label::after { content: ''; width: 30px; height: 1px; background: #b8966a; }
+  .section--dark .section__label { color: #d4b896; }
+  .section--dark .section__label::after { background: #d4b896; }
+  .section__title { font-family: 'Playfair Display', serif; font-size: clamp(1.75rem, 4vw, 3rem); font-weight: 700; line-height: 1.1; letter-spacing: -.02em; margin-bottom: 1.25rem; }
+  .section__title em { font-style: italic; color: #b8966a; }
+  .section--dark .section__title em { color: #d4b896; }
+
+  /* PAIN ITEMS */
+  .pain-list { display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem; }
+  .pain-item { display: flex; gap: 1rem; padding: 1.1rem; background: white; border: 1px solid rgba(26,20,16,.08); }
+  .pain-item__icon { font-size: 1.3rem; flex-shrink: 0; }
+  .pain-item__title { font-family: 'Playfair Display', serif; font-weight: 700; font-size: .95rem; margin-bottom: .2rem; }
+  .pain-item__desc { font-size: .88rem; color: #4a4035; line-height: 1.6; }
+
+  /* QUOTE */
+  .quote { padding: 2rem; border: 2px solid #1a1410; position: relative; margin-top: 2rem; }
+  .quote::before { content: '"'; position: absolute; top: -1.5rem; left: 1.5rem; font-family: 'Playfair Display', serif; font-size: 5rem; color: #b8966a; line-height: 1; background: #ede6d6; padding: 0 .4rem; }
+  .quote__text { font-family: 'Playfair Display', serif; font-size: 1.1rem; font-style: italic; line-height: 1.6; margin-bottom: 1.25rem; }
+  .quote__name { font-weight: 700; font-family: 'Playfair Display', serif; font-size: .9rem; }
+  .quote__role { font-size: .82rem; color: #4a4035; }
+
+  /* STEPS */
+  .steps { display: flex; flex-direction: column; gap: 2rem; margin-top: 2.5rem; }
+  .step { display: flex; gap: 1.25rem; align-items: flex-start; }
+  .step__num { width: 3rem; height: 3rem; background: #1a1410; color: #f5f0e8; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Playfair Display', serif; font-size: 1.1rem; font-weight: 700; flex-shrink: 0; }
+  .step__title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; margin-bottom: .3rem; }
+  .step__desc { font-size: .9rem; color: #4a4035; line-height: 1.6; }
+
+  /* TESTIMONIALS */
+  .testi-grid { display: grid; grid-template-columns: 1fr; gap: 1.25rem; margin-top: 2rem; }
+  .testi-card { background: white; padding: 1.5rem; border: 1px solid rgba(26,20,16,.08); }
+  .testi-stars { color: #b8966a; font-size: .85rem; margin-bottom: .75rem; }
+  .testi-text { font-style: italic; font-size: .92rem; line-height: 1.7; margin-bottom: 1rem; }
+  .testi-name { font-family: 'Playfair Display', serif; font-weight: 700; font-size: .9rem; }
+  .testi-role { font-size: .78rem; color: #4a4035; }
+
+  /* PRICING */
+  .price-card { border: 1px solid rgba(245,240,232,.15); padding: 2rem; background: rgba(245,240,232,.04); margin-top: 2rem; }
+  .price-amount { font-family: 'Playfair Display', serif; font-size: 4.5rem; font-weight: 900; line-height: 1; color: #d4b896; }
+  .price-currency { font-size: 1.75rem; color: #d4b896; vertical-align: super; }
+  .price-desc { font-size: .82rem; color: rgba(245,240,232,.45); margin-bottom: 1.5rem; }
+  .price-features { list-style: none; display: flex; flex-direction: column; gap: .75rem; margin-bottom: 2rem; }
+  .price-features li { display: flex; gap: .6rem; font-size: .92rem; color: rgba(245,240,232,.85); }
+  .price-features li::before { content: '✦'; color: #d4b896; font-size: .65rem; margin-top: .3rem; flex-shrink: 0; }
+  .price-note { font-size: .75rem; color: rgba(245,240,232,.3); text-align: center; margin-top: 1rem; }
+
+  /* FAQ */
+  .faq-item { border-bottom: 1px solid rgba(26,20,16,.12); padding: 1.5rem 0; cursor: pointer; }
+  .faq-q { display: flex; justify-content: space-between; align-items: center; font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 500; gap: 1rem; }
+  .faq-icon { color: #b8966a; font-size: 1.4rem; flex-shrink: 0; transition: transform .3s; }
+  .faq-item--open .faq-icon { transform: rotate(45deg); }
+  .faq-a { max-height: 0; overflow: hidden; transition: max-height .4s ease, padding .3s; font-size: .9rem; color: #4a4035; line-height: 1.8; }
+  .faq-item--open .faq-a { max-height: 300px; padding-top: .875rem; }
+
+  /* FOOTER */
+  footer { background: #1a1410; color: rgba(245,240,232,.5); padding: 2rem 1.25rem; }
+  .footer__inner { display: flex; flex-direction: column; gap: 1rem; align-items: center; text-align: center; }
+  .footer__logo { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 900; color: #f5f0e8; }
+  .footer__logo span { color: #d4b896; }
+  .footer__links { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; justify-content: center; }
+  .footer__links a { color: rgba(245,240,232,.35); text-decoration: none; font-size: .82rem; }
+  .footer__copy { font-size: .78rem; }
+
+  /* FORM */
+  .form-page { position: fixed; inset: 0; background: #0a0a0f; color: #e8e4dc; z-index: 200; overflow-y: auto; font-family: 'EB Garamond', Georgia, serif; }
+  .form-nav { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.25rem; border-bottom: 1px solid #1e1e2e; position: sticky; top: 0; background: #0a0a0f; z-index: 10; }
+  .form-nav__logo { font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 900; color: #e8e4dc; background: none; border: none; cursor: pointer; }
+  .form-nav__logo span { color: #d4b896; }
+  .form-nav__meta { display: flex; align-items: center; gap: .75rem; }
+  .form-nav__step { font-size: .82rem; color: #555; }
+  .form-nav__price { padding: .3rem .85rem; background: #13131a; border: 1px solid #2a2a3a; border-radius: 20px; font-size: .78rem; color: #d4b896; font-weight: 700; }
+  .progress-bar { height: 3px; background: #1e1e2e; }
+  .progress-bar__fill { height: 100%; background: linear-gradient(90deg, #c8b89a, #e8d4b0); transition: width .4s ease; }
+  .form-body { max-width: 600px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+  .form-icon { font-size: 2rem; margin-bottom: .75rem; }
+  .form-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; margin-bottom: 1rem; }
+  .step-dots { display: flex; gap: .35rem; margin-bottom: 2rem; }
+  .step-dot { height: 4px; flex: 1; border-radius: 2px; background: #1e1e2e; transition: background .3s; }
+  .step-dot--active { background: #d4b896; }
+  .fields { display: flex; flex-direction: column; gap: 1.25rem; }
+  .field__label { display: block; font-size: .78rem; color: #d4b896; letter-spacing: .1em; text-transform: uppercase; margin-bottom: .5rem; }
+  .field__input { width: 100%; padding: .85rem 1rem; background: #13131a; border: 1px solid #2a2a3a; color: #e8e4dc; font-size: .95rem; font-family: 'EB Garamond', Georgia, serif; outline: none; transition: border-color .2s; }
+  .field__input:focus { border-color: #c8b89a; }
+  .field__input--error { border-color: #e05555 !important; }
+  .field__error { color: #e05555; font-size: .78rem; margin-top: .35rem; }
+  .multiselect { display: flex; flex-wrap: wrap; gap: .5rem; }
+  .multi-btn { padding: .45rem .9rem; background: transparent; border: 1px solid #2a2a3a; color: #666; font-size: .82rem; cursor: pointer; font-family: inherit; border-radius: 20px; transition: all .2s; }
+  .multi-btn--active { border-color: #d4b896; color: #d4b896; background: rgba(212,184,150,.08); }
+  .form-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 2.5rem; gap: 1rem; }
+  .form-actions .btn-back { background: transparent; border: 1px solid #2a2a3a; color: #666; padding: .85rem 1.5rem; font-family: inherit; font-size: .9rem; cursor: pointer; }
+  .form-actions .btn-next { background: #d4b896; color: #0a0a0f; border: none; padding: .85rem 2rem; font-family: inherit; font-size: .95rem; font-weight: 700; cursor: pointer; transition: background .2s; }
+  .form-actions .btn-next:disabled { background: #1e1e2e; color: #333; cursor: default; }
+  .form-trust { display: flex; justify-content: center; gap: 1.5rem; margin-top: 1.5rem; font-size: .75rem; color: #444; flex-wrap: wrap; }
+
+  /* PAYMENT */
+  .pay-card { background: #13131a; border: 1px solid #2a2a3a; border-radius: 4px; padding: 1.25rem; margin-bottom: 1rem; }
+  .pay-card__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .75rem; padding-bottom: .75rem; border-bottom: 1px solid #2a2a3a; }
+  .pay-card__name { font-family: 'Playfair Display', serif; font-weight: 700; margin-bottom: .2rem; }
+  .pay-card__sub { font-size: .78rem; color: #888; }
+  .pay-card__price { font-size: 1.4rem; font-weight: 700; color: #d4b896; }
+  .pay-card__features { display: flex; flex-wrap: wrap; gap: .4rem 1.25rem; font-size: .78rem; color: #555; }
+  .pay-label { font-size: .72rem; color: #d4b896; letter-spacing: .1em; text-transform: uppercase; margin-bottom: 1rem; }
+  .card-row { display: grid; grid-template-columns: 1fr 1fr; gap: .875rem; }
+  .pay-trust { display: flex; justify-content: center; gap: 1.5rem; margin-top: 1rem; font-size: .72rem; color: #444; }
+
+  /* RESULT */
+  .result-page { position: fixed; inset: 0; background: #0a0a0f; color: #e8e4dc; z-index: 200; overflow-y: auto; font-family: 'EB Garamond', Georgia, serif; }
+  .result-header { padding: 1.5rem 1.25rem; border-bottom: 1px solid #1e1e2e; display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: flex-start; }
+  .result-badge { font-size: .72rem; color: #d4b896; letter-spacing: .15em; text-transform: uppercase; margin-bottom: .4rem; }
+  .result-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; }
+  .result-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
+  .result-actions button { padding: .65rem 1.25rem; font-family: inherit; font-size: .88rem; cursor: pointer; border: none; border-radius: 4px; }
+  .result-body { max-width: 780px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
+  .result-doc { background: #13131a; border: 1px solid #2a2a3a; border-radius: 4px; padding: 1.5rem; line-height: 1.8; font-size: .9rem; max-height: 65vh; overflow-y: auto; }
+  .result-disclaimer { margin-top: 1.25rem; padding: 1rem; background: #1a1208; border: 1px solid #3a2a08; font-size: .78rem; color: #a08050; border-radius: 4px; }
+
+  /* GENERATING */
+  .gen-page { position: fixed; inset: 0; background: #0a0a0f; color: #e8e4dc; z-index: 200; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1.5rem; font-family: 'EB Garamond', Georgia, serif; }
+  @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+  .spin { animation: spin 2s linear infinite; font-size: 2.5rem; }
+
+  /* DESKTOP ENHANCEMENTS */
+  @media(min-width: 768px) {
+    .container { padding: 0 2rem; }
+    .container--sm { padding: 0 2rem; }
+    .nav__inner { padding: 1.1rem 2rem; }
+    .hero { padding: 7rem 0 5rem; }
+    .hero__title { margin-bottom: 1.5rem; }
+    .hero__sub { font-size: 1.2rem; }
+    .trust__inner { gap: 1rem 3rem; }
+    .section { padding: 6rem 0; }
+    .steps { flex-direction: row; gap: 0; }
+    .step { flex-direction: column; text-align: center; flex: 1; padding: 0 1.5rem; position: relative; }
+    .step:not(:last-child)::after { content: ''; position: absolute; top: 1.4rem; left: calc(50% + 1.8rem); right: calc(-50% + 1.8rem); height: 1px; background: repeating-linear-gradient(90deg, #b8966a 0, #b8966a 5px, transparent 5px, transparent 12px); }
+    .step__num { margin: 0 auto 1.5rem; width: 2.8rem; height: 2.8rem; }
+    .testi-grid { grid-template-columns: repeat(3, 1fr); }
+    .footer__inner { flex-direction: row; justify-content: space-between; text-align: left; padding: 0 2rem; }
+    .footer__links { justify-content: flex-start; }
+    .form-nav { padding: 1.1rem 2rem; }
+    .form-body { padding: 2.5rem 2rem 5rem; }
+    .result-header { padding: 1.5rem 2rem; }
+    .result-body { padding: 2rem 2rem 5rem; }
+    .result-doc { padding: 2.5rem; }
+  }
+
+  @media(min-width: 1024px) {
+    .nav__inner { padding: 1.25rem 3rem; }
+    .hero__actions { gap: 1.5rem; }
+    .hero__proof { gap: 2.5rem; }
   }
 `;
 
-// ─────────────────────────────────────────────
-// LANDING PAGE
-// ─────────────────────────────────────────────
-function Landing({ onStart }) {
-  const [scrolled, setScrolled] = useState(false);
-  const [faqOpen, setFaqOpen] = useState(null);
-  const revealRefs = useRef([]);
-
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", onScroll);
-    const obs = new IntersectionObserver(entries => {
-      entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("vis"); });
-    }, { threshold: 0.1 });
-    document.querySelectorAll(".reveal").forEach(el => obs.observe(el));
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  const faqs = [
-    ["Ces CGV ont-elles une valeur juridique réelle ?","Les CGV générées couvrent les mentions obligatoires imposées par la directive 2011/83/UE et le RGPD. Pour la grande majorité des e-commerçants, elles sont directement utilisables. Nous recommandons une relecture par un professionnel pour les activités à risque élevé."],
-    ["Puis-je générer des CGV pour plusieurs pays ?","Oui. Vous sélectionnez plusieurs pays de vente lors de la configuration et choisissez la langue parmi 6 options. Les mentions s'adaptent aux marchés sélectionnés."],
-    ["Que se passe-t-il si ma situation change ?","Vous pouvez générer un nouveau document à tout moment pour 9 €. Nous recommandons une mise à jour à chaque changement significatif de votre activité."],
-    ["Le document inclut-il les mentions légales ?","LexGen génère les CGV. Les mentions légales obligatoires de votre site (éditeur, hébergeur) sont un document distinct — rapide à rédiger séparément."],
-    ["Quelle est votre politique de remboursement ?","Si le document ne vous convient pas, contactez-nous dans les 7 jours. Remboursement intégral, sans question."],
-  ];
-
-  const s = (obj) => obj; // passthrough for style objects
-
-  return (
-    <div style={{fontFamily:"'EB Garamond',Georgia,serif",background:C.cream,color:C.ink,fontSize:18,lineHeight:1.6,overflowX:"hidden"}}>
-      <style>{css}</style>
-
-      {/* NAV */}
-      <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,display:"flex",justifyContent:"space-between",alignItems:"center",padding:"1.25rem 4rem",width:"100%",background:C.cream,borderBottom:`1px solid rgba(26,20,16,0.12)`,boxShadow:scrolled?"0 2px 20px rgba(26,20,16,0.08)":"none",transition:"box-shadow 0.3s"}}>
-        <span style={{fontFamily:"'Playfair Display',serif",fontSize:"1.5rem",fontWeight:900,letterSpacing:"-0.02em"}}>Lex<span style={{color:C.gold}}>Gen</span></span>
-        <div style={{display:"flex",gap:"2.5rem",alignItems:"center"}}>
-          <a href="#comment" style={{color:C.inkLight,textDecoration:"none",fontSize:"0.9rem",letterSpacing:"0.05em"}}>Comment ça marche</a>
-          <a href="#tarif" style={{color:C.inkLight,textDecoration:"none",fontSize:"0.9rem",letterSpacing:"0.05em"}}>Tarif</a>
-          <a href="#faq" style={{color:C.inkLight,textDecoration:"none",fontSize:"0.9rem",letterSpacing:"0.05em"}}>FAQ</a>
-          <button onClick={onStart} className="nav-cta" style={{background:C.ink,color:C.cream,padding:"0.6rem 1.5rem",border:"none",cursor:"pointer",fontFamily:"inherit",fontSize:"0.85rem",letterSpacing:"0.1em",textTransform:"uppercase",transition:"background 0.2s"}}
-            onMouseOver={e=>e.target.style.background=C.gold} onMouseOut={e=>e.target.style.background=C.ink}>
-            Générer mes CGV
-          </button>
-        </div>
-      </nav>
-
-      {/* HERO */}
-      <section className="hero-section" style={{minHeight:"100vh",display:"grid",gridTemplateColumns:"1fr 1fr",paddingTop:80,position:"relative",overflow:"hidden"}}>
-        <div className="hero-left" style={{display:"flex",flexDirection:"column",justifyContent:"center",padding:"5rem 4rem",zIndex:2,minWidth:0}}>
-          <div className="hero-anim-1" style={{display:"inline-flex",alignItems:"center",gap:"0.75rem",fontSize:"0.8rem",letterSpacing:"0.2em",textTransform:"uppercase",color:C.gold,marginBottom:"2rem"}}>
-            <span style={{width:30,height:1,background:C.gold,display:"block"}}></span>
-            Conforme droit européen & RGPD
-          </div>
-          <h1 className="hero-anim-2" style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(3rem,5vw,5rem)",fontWeight:900,lineHeight:1.05,letterSpacing:"-0.02em",marginBottom:"2rem"}}>
-            Vos CGV <em style={{fontStyle:"italic",color:C.gold}}>rédigées</em><br/>en 5 minutes.
-          </h1>
-          <p className="hero-anim-3" className="hero-sub" style={{fontSize:"1.2rem",color:C.inkLight,maxWidth:420,lineHeight:1.7,marginBottom:"3rem"}}>
-            Fini les templates copiés-collés qui n'engagent que vous. LexGen génère des CGV personnalisées, conformes et prêtes à l'emploi — pour 9 €.
-          </p>
-          <div className="hero-anim-4" className="hero-cta-group" style={{display:"flex",alignItems:"center",gap:"2rem"}}>
-            <button onClick={onStart} className="btn-primary">Générer mes CGV — 9 €</button>
-            <a href="#comment" style={{color:C.inkLight,textDecoration:"none",fontSize:"0.9rem",letterSpacing:"0.05em"}}>Voir comment ça marche →</a>
-          </div>
-          <div className="hero-anim-5" className="hero-proof" style={{display:"flex",gap:"2.5rem",marginTop:"4rem"}}>
-            {[["2 400+","Documents générés"],["6","Langues disponibles"],["9 €","Paiement unique"]].map(([num,label],i)=>(
-              <div key={i} style={{display:"flex",gap:"0 2.5rem",alignItems:"center"}}>
-                {i>0 && <div style={{width:1,background:"rgba(26,20,16,0.15)",alignSelf:"stretch",marginRight:"2.5rem"}}/>}
-                <div>
-                  <div style={{fontFamily:"'Playfair Display',serif",fontSize:"2rem",fontWeight:700,lineHeight:1}}>{num}</div>
-                  <div style={{fontSize:"0.8rem",color:C.inkLight,letterSpacing:"0.05em",marginTop:"0.25rem"}}>{label}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Doc preview */}
-        <div className="hero-right" style={{background:C.creamDark,borderLeft:`1px solid rgba(26,20,16,0.1)`,display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"hidden"}}>
-          <div style={{position:"absolute",inset:0,backgroundImage:"repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(26,20,16,0.04) 28px,rgba(26,20,16,0.04) 29px)"}}/>
-          <div className="doc-float" style={{position:"relative",zIndex:2,width:320,background:"white",boxShadow:"0 20px 60px rgba(26,20,16,0.15)",padding:"2rem",transform:"rotate(-2deg)"}}>
-            <div style={{position:"absolute",top:-15,right:-15,width:72,height:72,background:C.gold,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",color:"white",fontFamily:"'Playfair Display',serif",fontSize:"0.6rem",fontWeight:700,letterSpacing:"0.05em",textAlign:"center",lineHeight:1.3,textTransform:"uppercase",transform:"rotate(15deg)",boxShadow:"0 4px 12px rgba(184,150,106,0.4)"}}>Conforme<br/>RGPD<br/>2024</div>
-            <div style={{borderBottom:`2px solid ${C.ink}`,paddingBottom:"1rem",marginBottom:"1.5rem"}}>
-              <div style={{fontFamily:"'Playfair Display',serif",fontSize:"0.85rem",fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"0.2rem"}}>Conditions Générales de Vente</div>
-              <div style={{fontSize:"0.7rem",color:C.inkLight,fontStyle:"italic"}}>MonShop SAS · En vigueur au 23/02/2026</div>
-            </div>
-            {["Art. 1 — Champ d'application","Art. 2 — Prix & commandes","Art. 3 — Livraison & retours","Art. 4 — Données personnelles"].map((title,i)=>(
-              <div key={i} style={{marginBottom:"1rem"}}>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:"0.65rem",fontWeight:700,textTransform:"uppercase",letterSpacing:"0.08em",marginBottom:"0.4rem"}}>{title}</div>
-                <div style={{height:7,background:"rgba(26,20,16,0.07)",borderRadius:2,marginBottom:"0.3rem"}}/>
-                <div style={{height:7,background:"rgba(26,20,16,0.07)",borderRadius:2,width:"80%"}}/>
-              </div>
-            ))}
-            <div style={{display:"inline-flex",alignItems:"center",gap:"0.4rem",background:"#e8f5e9",color:"#2e7d32",fontSize:"0.6rem",padding:"0.3rem 0.7rem",borderRadius:20,marginTop:"0.5rem",fontFamily:"sans-serif",fontWeight:600}}>✓ Personnalisé & conforme</div>
-          </div>
-        </div>
-      </section>
-
-      {/* TRUST BAR */}
-      <div className="trust-bar-inner" style={{background:C.ink,color:C.cream,padding:"1rem 4rem",display:"flex",justifyContent:"center",gap:"4rem"}}>
-        {[["🔒","Paiement sécurisé Stripe"],["⚡","Document livré en 30 secondes"],["🌍","6 langues européennes"],["✦","Conforme directive 2011/83/UE"]].map(([icon,text])=>(
-          <div key={text} style={{display:"flex",alignItems:"center",gap:"0.6rem",fontSize:"0.82rem",letterSpacing:"0.08em",opacity:0.8}}>
-            <span>{icon}</span><span>{text}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* PROBLEM */}
-      <section className="testi-section" style={{background:C.creamDark,borderTop:`1px solid rgba(26,20,16,0.1)`,borderBottom:`1px solid rgba(26,20,16,0.1)`,padding:"7rem 4rem"}}>
-        <div className="problem-inner" style={{maxWidth:1100,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6rem",alignItems:"center"}}>
-          <div className="pricing-text">
-            <div className="reveal" style={{fontSize:"0.75rem",letterSpacing:"0.25em",textTransform:"uppercase",color:C.gold,display:"flex",alignItems:"center",gap:"1rem",marginBottom:"1.5rem"}}>Le problème<span style={{width:40,height:1,background:C.gold,display:"block"}}/></div>
-            <h2 className="reveal d1" style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(2rem,3vw,3rem)",fontWeight:700,lineHeight:1.1,letterSpacing:"-0.02em",marginBottom:"2rem"}}>Ce que les e-commerçants <em style={{fontStyle:"italic",color:C.gold}}>évitent</em> jusqu'au dernier moment</h2>
-            <div style={{display:"flex",flexDirection:"column",gap:"1.25rem"}}>
-              {[
-                ["😰","Avocat trop cher","Un juriste facture entre 300 € et 800 € pour rédiger vos CGV. Hors de portée pour une micro-entreprise."],
-                ["📋","Templates inutilisables","Les modèles gratuits sont génériques, non conformes à votre activité et potentiellement obsolètes."],
-                ["⚖️","Risque juridique réel","Des CGV absentes ou non conformes exposent à des amendes DGCCRF pouvant atteindre 15 000 €."],
-              ].map(([icon,title,desc])=>(
-                <div key={title} className="pain-item reveal d2" style={{display:"flex",gap:"1rem",alignItems:"flex-start",padding:"1.25rem",background:"white",border:`1px solid rgba(26,20,16,0.08)`}}>
-                  <span style={{fontSize:"1.4rem",flexShrink:0}}>{icon}</span>
-                  <div>
-                    <div style={{fontFamily:"'Playfair Display',serif",fontWeight:700,fontSize:"1rem",marginBottom:"0.25rem"}}>{title}</div>
-                    <div style={{fontSize:"0.9rem",color:C.inkLight}}>{desc}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="reveal" className="problem-quote" style={{padding:"3rem",border:`2px solid ${C.ink}`,position:"relative"}}>
-            <span style={{position:"absolute",top:"-1.5rem",left:"2rem",fontFamily:"'Playfair Display',serif",fontSize:"6rem",color:C.gold,lineHeight:1,background:C.creamDark,padding:"0 0.5rem"}}>"</span>
-            <p style={{fontFamily:"'Playfair Display',serif",fontSize:"1.3rem",fontStyle:"italic",lineHeight:1.6,marginBottom:"2rem",color:C.ink}}>"J'ai lancé ma boutique Shopify sans CGV pendant 8 mois. Un client m'a menacé d'une plainte. Ça m'aurait coûté une fortune si j'avais attendu encore."</p>
-            <div style={{fontSize:"0.85rem",color:C.inkLight}}>
-              <strong style={{color:C.ink,display:"block",marginBottom:"0.2rem",fontFamily:"'Playfair Display',serif"}}>Marie-Claire D.</strong>
-              Auto-entrepreneuse, boutique de cosmétiques naturels
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section id="comment" className="steps-section" style={{padding:"7rem 4rem"}}>
-        <div style={{maxWidth:1100,margin:"0 auto"}}>
-          <div style={{textAlign:"center",marginBottom:"5rem"}}>
-            <div className="reveal" style={{fontSize:"0.75rem",letterSpacing:"0.25em",textTransform:"uppercase",color:C.gold,display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem",marginBottom:"1.5rem"}}>Comment ça marche<span style={{width:40,height:1,background:C.gold,display:"block"}}/></div>
-            <h2 className="reveal d1" style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(2rem,3vw,3.5rem)",fontWeight:700,lineHeight:1.1,letterSpacing:"-0.02em"}}>Trois étapes, <em style={{fontStyle:"italic",color:C.gold}}>c'est tout.</em></h2>
-          </div>
-          <div className="steps-grid" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:0,position:"relative"}}>
-            <div className="steps-line" style={{position:"absolute",top:"2.5rem",left:"calc(16.66% + 1rem)",right:"calc(16.66% + 1rem)",height:1,backgroundImage:`repeating-linear-gradient(90deg,${C.gold} 0,${C.gold} 6px,transparent 6px,transparent 14px)`}}/>
-            {[["1","Remplissez le formulaire","15 questions sur votre activité, vos produits, votre politique de livraison et retours. Moins de 3 minutes."],
-              ["2","Payez 9 €","Paiement sécurisé par carte via Stripe. Un paiement unique, aucun abonnement caché."],
-              ["3","Téléchargez votre document","Vos CGV personnalisées générées instantanément. Copiez sur votre site ou téléchargez en PDF."]
-            ].map(([num,title,desc],i)=>(
-              <div key={i} className={`step reveal d${i}`} style={{padding:"0 2rem",textAlign:"center"}}>
-                <div className="step-num" style={{width:"5rem",height:"5rem",background:C.ink,color:C.cream,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"'Playfair Display',serif",fontSize:"1.5rem",fontWeight:700,margin:"0 auto 2rem",position:"relative",zIndex:2}}>{num}</div>
-                <div style={{fontFamily:"'Playfair Display',serif",fontSize:"1.2rem",fontWeight:700,marginBottom:"0.75rem"}}>{title}</div>
-                <div style={{fontSize:"0.92rem",color:C.inkLight,lineHeight:1.7}}>{desc}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* TESTIMONIALS */}
-      <section style={{background:C.creamDark,borderTop:`1px solid rgba(26,20,16,0.1)`,borderBottom:`1px solid rgba(26,20,16,0.1)`,padding:"7rem 4rem"}}>
-        <div style={{maxWidth:1100,margin:"0 auto"}}>
-          <div style={{textAlign:"center",marginBottom:"4rem"}}>
-            <div className="reveal" style={{fontSize:"0.75rem",letterSpacing:"0.25em",textTransform:"uppercase",color:C.gold,display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem",marginBottom:"1.5rem"}}>Témoignages<span style={{width:40,height:1,background:C.gold,display:"block"}}/></div>
-            <h2 className="reveal d1" style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(2rem,3vw,3rem)",fontWeight:700,lineHeight:1.1,letterSpacing:"-0.02em"}}>Ce qu'en disent <em style={{fontStyle:"italic",color:C.gold}}>nos clients</em></h2>
-          </div>
-          <div className="testi-grid" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"2rem"}}>
-            {[
-              ["★★★★★","Impeccable. J'ai rempli le formulaire en 4 minutes, les CGV étaient prêtes immédiatement. Bien mieux que ce que j'avais trouvé gratuitement.","Thomas B.","Fondateur, SaaS B2B · Paris"],
-              ["★★★★★","Enfin un outil sérieux pour les indépendants. Les CGV sont rédigées en français juridique propre, ça inspire confiance à mes clients.","Sophie L.","Créatrice, boutique mode · Lyon"],
-              ["★★★★☆","J'avais peur que ce soit un simple template. Mais les CGV sont vraiment adaptées à mon activité de formation. Pour 9 €, c'est imbattable.","Julien M.","Formateur indépendant · Bordeaux"],
-            ].map(([stars,text,name,role],i)=>(
-              <div key={i} className={`testi-card reveal d${i}`} style={{background:"white",padding:"2rem",border:`1px solid rgba(26,20,16,0.08)`}}>
-                <div style={{color:C.gold,fontSize:"0.9rem",marginBottom:"1rem",letterSpacing:"0.1em"}}>{stars}</div>
-                <p style={{fontStyle:"italic",fontSize:"0.95rem",lineHeight:1.7,color:C.ink,marginBottom:"1.5rem"}}>&ldquo;{text}&rdquo;</p>
-                <div style={{fontSize:"0.85rem"}}>
-                  <strong style={{display:"block",color:C.ink,fontFamily:"'Playfair Display',serif",marginBottom:"0.2rem"}}>{name}</strong>
-                  <span style={{color:C.inkLight,fontSize:"0.8rem"}}>{role}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* PRICING */}
-      <section id="tarif" className="pricing-section" style={{background:C.ink,color:C.cream,padding:"7rem 4rem"}}>
-        <div className="pricing-inner" style={{maxWidth:900,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:"4rem",alignItems:"center"}}>
-          <div>
-            <div className="reveal" style={{fontSize:"0.75rem",letterSpacing:"0.25em",textTransform:"uppercase",color:C.goldLight,display:"flex",alignItems:"center",gap:"1rem",marginBottom:"1.5rem"}}>Tarif<span style={{width:40,height:1,background:C.goldLight,display:"block"}}/></div>
-            <h2 className="reveal d1" style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(2rem,3vw,3.5rem)",fontWeight:700,lineHeight:1.1,letterSpacing:"-0.02em",marginBottom:"1.5rem"}}>Simple,<br/><em style={{fontStyle:"italic",color:C.goldLight}}>transparent.</em></h2>
-            <p className="reveal d2" style={{color:"rgba(245,240,232,0.6)",fontSize:"1rem",lineHeight:1.8}}>Pas d'abonnement. Pas de frais cachés. Vous payez une fois, vous recevez vos CGV immédiatement. Insatisfait ? On vous rembourse.</p>
-          </div>
-          <div className="reveal" style={{border:`1px solid rgba(245,240,232,0.15)`,padding:"3rem",background:"rgba(245,240,232,0.04)"}}>
-            <div style={{display:"flex",alignItems:"baseline",gap:"0.5rem",marginBottom:"0.5rem"}}>
-              <span style={{fontFamily:"'Playfair Display',serif",fontSize:"2rem",color:C.goldLight,alignSelf:"flex-start",marginTop:"0.75rem"}}>€</span>
-              <span style={{fontFamily:"'Playfair Display',serif",fontSize:"5rem",fontWeight:900,lineHeight:1,color:C.goldLight}}>9</span>
-            </div>
-            <div style={{fontSize:"0.85rem",color:"rgba(245,240,232,0.5)",marginBottom:"2rem"}}>Paiement unique · Sans abonnement</div>
-            <ul style={{listStyle:"none",display:"flex",flexDirection:"column",gap:"0.9rem",marginBottom:"2.5rem"}}>
-              {["CGV complètes en 8+ articles","Personnalisées à votre activité","Conformes directive 2011/83/UE & RGPD","Disponibles en 6 langues","Livraison instantanée","Satisfait ou remboursé"].map(f=>(
-                <li key={f} style={{display:"flex",alignItems:"flex-start",gap:"0.75rem",fontSize:"0.95rem",color:"rgba(245,240,232,0.85)"}}>
-                  <span style={{color:C.goldLight,fontSize:"0.7rem",marginTop:"0.3rem",flexShrink:0}}>✦</span>{f}
-                </li>
-              ))}
-            </ul>
-            <button onClick={onStart} style={{width:"100%",padding:"1rem",background:C.goldLight,color:C.ink,border:"none",cursor:"pointer",fontFamily:"'EB Garamond',serif",fontSize:"1rem",letterSpacing:"0.08em",fontWeight:500,transition:"background 0.2s"}}
-              onMouseOver={e=>e.target.style.background="white"} onMouseOut={e=>e.target.style.background=C.goldLight}>
-              Générer mes CGV maintenant
-            </button>
-            <div style={{marginTop:"1.5rem",fontSize:"0.8rem",color:"rgba(245,240,232,0.35)",textAlign:"center"}}>🔒 Paiement sécurisé · Remboursé si insatisfait</div>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section id="faq" className="faq-section" style={{padding:"7rum 4rem"}}>
-        <div style={{maxWidth:800,margin:"0 auto"}}>
-          <div style={{textAlign:"center",marginBottom:"4rem"}}>
-            <div className="reveal" style={{fontSize:"0.75rem",letterSpacing:"0.25em",textTransform:"uppercase",color:C.gold,display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem",marginBottom:"1.5rem"}}>FAQ<span style={{width:40,height:1,background:C.gold,display:"block"}}/></div>
-            <h2 className="reveal d1" style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(2rem,3vw,3rem)",fontWeight:700,lineHeight:1.1,letterSpacing:"-0.02em"}}>Tout ce que vous <em style={{fontStyle:"italic",color:C.gold}}>devez savoir</em></h2>
-          </div>
-          {faqs.map(([q,a],i)=>(
-            <div key={i} className={`faq-item reveal ${faqOpen===i?"faq-open":""}`} style={{borderBottom:`1px solid rgba(26,20,16,0.12)`,padding:"1.75rem 0",cursor:"pointer"}} onClick={()=>setFaqOpen(faqOpen===i?null:i)}>
-              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",fontFamily:"'Playfair Display',serif",fontSize:"1.1rem",fontWeight:500}}>
-                {q}
-                <span className="faq-icon" style={{fontSize:"1.5rem",color:C.gold,flexShrink:0,marginLeft:"1rem"}}>+</span>
-              </div>
-              <div className="faq-a" style={{fontSize:"0.95rem",color:C.inkLight,lineHeight:1.8}}>{a}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* FINAL CTA */}
-      <section className="cta-section" style={{background:C.creamDark,borderTop:`1px solid rgba(26,20,16,0.1)`,padding:"7rem 4rem",textAlign:"center"}}>
-        <div style={{maxWidth:700,margin:"0 auto"}}>
-          <div className="reveal" style={{fontSize:"0.75rem",letterSpacing:"0.25em",textTransform:"uppercase",color:C.gold,display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem",marginBottom:"1.5rem"}}>Prêt ?<span style={{width:40,height:1,background:C.gold,display:"block"}}/></div>
-          <h2 className="reveal d1" style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(2rem,3vw,3.5rem)",fontWeight:700,lineHeight:1.1,letterSpacing:"-0.02em",marginBottom:"1.5rem"}}>Protégez votre activité <em style={{fontStyle:"italic",color:C.gold}}>aujourd'hui.</em></h2>
-          <p className="reveal d2" style={{fontSize:"1.1rem",color:C.inkLight,marginBottom:"3rem"}}>Rejoignez plus de 2 400 e-commerçants qui ont sécurisé leur boutique. 5 minutes et 9 € — c'est tout ce qu'il faut.</p>
-          <button onClick={onStart} className="btn-primary reveal d3" style={{fontSize:"1.1rem",padding:"1.1rem 3rem"}}>Générer mes CGV — 9 € →</button>
-          <div className="reveal" style={{marginTop:"1.5rem",fontSize:"0.82rem",color:C.inkLight}}>Paiement sécurisé · Livraison instantanée · Satisfait ou remboursé</div>
-        </div>
-      </section>
-
-      {/* FOOTER */}
-      <footer style={{background:C.ink,color:"rgba(245,240,232,0.5)",padding:"3rem 4rem",display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:"0.82rem",flexWrap:"wrap",gap:"1rem"}} className="footer-inner">
-        <span style={{fontFamily:"'Playfair Display',serif",fontSize:"1.2rem",fontWeight:900,color:C.cream}}>Lex<span style={{color:C.goldLight}}>Gen</span></span>
-        <span>© 2026 LexGen. Tous droits réservés.</span>
-        <div style={{display:"flex",gap:"2rem"}}>
-          {["Mentions légales","Confidentialité","Contact"].map(l=>(
-            <a key={l} href="#" style={{color:"rgba(245,240,232,0.4)",textDecoration:"none"}}>{l}</a>
-          ))}
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────
-// PAYMENT FORM
-// ─────────────────────────────────────────────
+// ── PAYMENT FORM ──────────────────────────────
 function PaymentForm({ onSuccess, onCancel, formData }) {
   const [cardNumber, setCardNumber] = useState("");
   const [expiry, setExpiry]         = useState("");
@@ -456,64 +313,73 @@ function PaymentForm({ onSuccess, onCancel, formData }) {
     if (num==="4000000000000002") { setTimeout(()=>{setCardError("Votre carte a été refusée.");setProcessing(false);},1200); return; }
     if (month<1||month>12) { setTimeout(()=>{setCardError("Date d'expiration invalide.");setProcessing(false);},600); return; }
     if (year<now.getFullYear()||(year===now.getFullYear()&&month<now.getMonth()+1)) { setTimeout(()=>{setCardError("Votre carte est expirée.");setProcessing(false);},600); return; }
-    setTimeout(()=>{setProcessing(false);onSuccess();},1500);
+    setTimeout(()=>{ setProcessing(false); onSuccess(); }, 1500);
   };
 
-  const inp = (extra={}) => ({width:"100%",padding:"0.85rem 1rem",background:"#0a0a0f",border:"1px solid #2a2a3a",borderRadius:8,color:"#e8e4dc",fontSize:"1rem",fontFamily:"'EB Garamond',Georgia,serif",outline:"none",boxSizing:"border-box",...extra});
-
   return (
-    <div style={{minHeight:"100vh",background:C.dark,color:"#e8e4dc",fontFamily:"'EB Garamond',Georgia,serif",display:"flex",alignItems:"center",justifyContent:"center",padding:"2rem",position:"fixed",inset:0,overflowY:"auto",zIndex:999}}>
-      <div style={{width:"100%",maxWidth:480}}>
-        <button onClick={onCancel} style={{background:"transparent",border:"none",color:"#555",cursor:"pointer",fontFamily:"inherit",fontSize:"0.9rem",marginBottom:"2rem",display:"flex",alignItems:"center",gap:"0.5rem"}}>← Retour à l'accueil</button>
-        <div style={{textAlign:"center",marginBottom:"2.5rem"}}>
-          <div style={{fontSize:"2.5rem",marginBottom:"1rem"}}>🔒</div>
-          <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:"1.8rem",fontWeight:700,margin:"0 0 0.5rem"}}>Paiement sécurisé</h2>
-          <p style={{color:"#888",margin:0,fontSize:"0.9rem"}}>Vos CGV personnalisées en quelques secondes</p>
+    <div className="form-page">
+      <div className="form-nav">
+        <button className="form-nav__logo" onClick={onCancel}>Lex<span>Gen</span></button>
+        <div className="form-nav__meta">
+          <span className="form-nav__step">Paiement sécurisé</span>
+          <span className="form-nav__price">9 €</span>
         </div>
-        <div style={{background:"#13131a",border:"1px solid #2a2a3a",borderRadius:12,padding:"1.5rem",marginBottom:"1.5rem"}}>
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"1rem",paddingBottom:"1rem",borderBottom:"1px solid #2a2a3a"}}>
+      </div>
+      <div className="form-body">
+        <div style={{textAlign:"center",marginBottom:"2rem"}}>
+          <div style={{fontSize:"2rem",marginBottom:".5rem"}}>🔒</div>
+          <h2 className="form-title" style={{textAlign:"center"}}>Paiement sécurisé</h2>
+          <p style={{color:"#888",fontSize:".9rem"}}>Vos CGV personnalisées en quelques secondes</p>
+        </div>
+        <div className="pay-card">
+          <div className="pay-card__header">
             <div>
-              <div style={{fontWeight:700,marginBottom:"0.25rem",fontFamily:"'Playfair Display',serif"}}>Génération CGV complètes</div>
-              <div style={{fontSize:"0.8rem",color:"#888"}}>{formData.companyName||"Votre entreprise"} · {formData.outputLanguage||"Français"}</div>
+              <div className="pay-card__name">Génération CGV complètes</div>
+              <div className="pay-card__sub">{formData.companyName||"Votre entreprise"} · {formData.outputLanguage||"Français"}</div>
             </div>
-            <div style={{fontSize:"1.5rem",fontWeight:700,color:C.goldLight}}>9,00 €</div>
+            <div className="pay-card__price">9,00 €</div>
           </div>
-          <div style={{display:"flex",flexWrap:"wrap",gap:"0.5rem 1.5rem",fontSize:"0.8rem",color:"#666"}}>
-            <span>✓ Document complet (8+ articles)</span><span>✓ Conforme RGPD</span><span>✓ Livraison instantanée</span>
+          <div className="pay-card__features">
+            <span>✓ 8+ articles</span>
+            <span>✓ Conforme RGPD</span>
+            <span>✓ Livraison instantanée</span>
           </div>
         </div>
-        <div style={{background:"#13131a",border:"1px solid #2a2a3a",borderRadius:12,padding:"1.5rem",marginBottom:"1rem"}}>
-          <div style={{fontSize:"0.78rem",color:C.goldLight,letterSpacing:"0.1em",textTransform:"uppercase",marginBottom:"1.25rem"}}>Informations de carte</div>
-          <div style={{marginBottom:"1rem"}}>
-            <div style={{fontSize:"0.75rem",color:"#666",marginBottom:"0.4rem"}}>Numéro de carte</div>
-            <input type="text" inputMode="numeric" placeholder="1234 5678 9012 3456" value={cardNumber} onChange={e=>setCardNumber(fmtCard(e.target.value))} style={inp()} />
-          </div>
-          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"1rem"}}>
+        <div className="pay-card">
+          <div className="pay-label">Informations de carte</div>
+          <div className="fields">
             <div>
-              <div style={{fontSize:"0.75rem",color:"#666",marginBottom:"0.4rem"}}>Date d'expiration</div>
-              <input type="text" inputMode="numeric" placeholder="MM / AA" value={expiry} onChange={e=>setExpiry(fmtExp(e.target.value))} style={inp()} />
+              <div className="field__label">Numéro de carte</div>
+              <input className="field__input" type="text" inputMode="numeric" placeholder="1234 5678 9012 3456" value={cardNumber} onChange={e=>setCardNumber(fmtCard(e.target.value))} />
             </div>
-            <div>
-              <div style={{fontSize:"0.75rem",color:"#666",marginBottom:"0.4rem"}}>CVC</div>
-              <input type="text" inputMode="numeric" placeholder="123" value={cvc} onChange={e=>setCvc(e.target.value.replace(/\D/g,"").slice(0,4))} style={inp()} />
+            <div className="card-row">
+              <div>
+                <div className="field__label">Expiration</div>
+                <input className="field__input" type="text" inputMode="numeric" placeholder="MM / AA" value={expiry} onChange={e=>setExpiry(fmtExp(e.target.value))} />
+              </div>
+              <div>
+                <div className="field__label">CVC</div>
+                <input className="field__input" type="text" inputMode="numeric" placeholder="123" value={cvc} onChange={e=>setCvc(e.target.value.replace(/\D/g,"").slice(0,4))} />
+              </div>
             </div>
           </div>
-          {cardError && <div style={{color:"#e05555",fontSize:"0.85rem",marginTop:"1rem"}}>⚠ {cardError}</div>}
+          {cardError && <div className="field__error" style={{marginTop:".75rem"}}>⚠ {cardError}</div>}
         </div>
-        <button onClick={handlePay} disabled={processing||!isValid} style={{width:"100%",padding:"1rem",background:processing?"#2a2a3a":isValid?"linear-gradient(135deg,#c8b89a,#e8d4b0)":"#1e1e2e",color:processing||!isValid?"#555":"#0a0a0f",border:"none",borderRadius:10,cursor:processing||!isValid?"default":"pointer",fontFamily:"inherit",fontSize:"1rem",fontWeight:700,marginBottom:"1rem",transition:"all 0.2s"}}>
-          {processing?"⏳ Traitement en cours...":"💳 Payer 9,00 € et générer mes CGV"}
+        <button className="btn btn--gold btn--full" onClick={handlePay} disabled={processing||!isValid} style={{opacity:processing||!isValid?.5:1,cursor:processing||!isValid?"default":"pointer",fontSize:"1rem",fontWeight:700,padding:"1rem"}}>
+          {processing ? "⏳ Traitement..." : "💳 Payer 9,00 € et générer mes CGV"}
         </button>
-        <div style={{display:"flex",justifyContent:"center",gap:"1.5rem",marginTop:"1rem",fontSize:"0.75rem",color:"#444"}}>
-          <span>🔒 SSL sécurisé</span><span>⚡ Stripe</span><span>🛡 Données protégées</span>
+        <div className="pay-trust">
+          <span>🔒 SSL</span><span>⚡ Stripe</span><span>🛡 Données protégées</span>
+        </div>
+        <div style={{marginTop:"1.5rem",textAlign:"center"}}>
+          <button onClick={onCancel} style={{background:"none",border:"none",color:"#555",cursor:"pointer",fontFamily:"inherit",fontSize:".85rem"}}>← Retour au formulaire</button>
         </div>
       </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────
-// CGV GENERATOR (formulaire)
-// ─────────────────────────────────────────────
+// ── GENERATOR ─────────────────────────────────
 function Generator({ onBackHome }) {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData]       = useState({});
@@ -524,19 +390,19 @@ function Generator({ onBackHome }) {
   const [fieldErrors, setFieldErrors] = useState({});
 
   const step     = STEPS[currentStep];
-  const progress = (currentStep / STEPS.length) * 100;
+  const progress = ((currentStep) / STEPS.length) * 100;
 
   const validateSiret = s => {
     const n = s.replace(/[\s.]/g,"");
     if (!n) return "Le numéro SIRET est requis.";
     if (!/^\d+$/.test(n)) return "Le SIRET ne doit contenir que des chiffres.";
-    if (n.length!==14) return "Le SIRET doit contenir 14 chiffres (vous en avez saisi "+n.length+").";
+    if (n.length!==14) return "Le SIRET doit contenir 14 chiffres (saisi : "+n.length+").";
     return null;
   };
   const validateAddress = a => {
     if (!a||a.trim().length<10) return "Adresse trop courte.";
     if (!/\d/.test(a)) return "L'adresse doit contenir un numéro de rue.";
-    if (!/\d{5}/.test(a.replace(/\s/g,""))) return "L'adresse doit contenir un code postal (5 chiffres).";
+    if (!/\d{5}/.test(a.replace(/\s/g,""))) return "Doit contenir un code postal (5 chiffres).";
     return null;
   };
   const validateField = (key,val) => key==="siret"?validateSiret(val||""):key==="address"?validateAddress(val||""):null;
@@ -565,8 +431,8 @@ function Generator({ onBackHome }) {
     setScreen("generating");
     const date = new Date().toLocaleDateString("fr-FR");
     try {
-      const prompt = `Tu es un expert juridique. Génère des CGV professionnelles complètes en ${formData.outputLanguage||"Français"} pour : Entreprise: ${formData.companyName} (${formData.legalForm}, SIRET ${formData.siret}), Adresse: ${formData.address}, Email: ${formData.email}, Produits: ${formData.productType} – ${formData.productDescription}, Pays: ${formData.countries}, Devise: ${formData.currency}, Livraison: ${formData.deliveryDelay} frais ${formData.shippingCost}, Retours: ${formData.returnPolicy} frais ${formData.returnCost}, Paiement: ${formData.paymentMethods} via ${formData.paymentProcessor}, Données: ${formData.dataProcessor}${formData.additionalClauses?`, Clauses supp: ${formData.additionalClauses}`:""}.
-CGV complètes articles numérotés conformes directive 2011/83/UE et RGPD. Inclure: champ application, prix, commandes, paiement, livraison, rétractation, garanties, responsabilité, données personnelles, droit applicable. Terminer par "Document généré le ${date} – À titre informatif."`;
+      const prompt = `Tu es un expert juridique. Génère des CGV professionnelles complètes en ${formData.outputLanguage||"Français"} pour : Entreprise: ${formData.companyName} (${formData.legalForm}, SIRET ${formData.siret}), Adresse: ${formData.address}, Email: ${formData.email}, Produits: ${formData.productType} – ${formData.productDescription}, Pays: ${formData.countries}, Devise: ${formData.currency}, Livraison: ${formData.deliveryDelay} frais ${formData.shippingCost}, Retours: ${formData.returnPolicy} frais ${formData.returnCost}, Paiement: ${formData.paymentMethods} via ${formData.paymentProcessor}, Données: ${formData.dataProcessor}${formData.additionalClauses?`, Clauses: ${formData.additionalClauses}`:""}.
+CGV complètes articles numérotés conformes directive 2011/83/UE et RGPD. Terminer par "Document généré le ${date} – À titre informatif."`;
       const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})});
       const data = await res.json();
       setResult(data.content?.map(b=>b.text||"").join("\n")||buildFallback(date));
@@ -574,123 +440,303 @@ CGV complètes articles numérotés conformes directive 2011/83/UE et RGPD. Incl
     setScreen("result");
   };
 
-  const copy  = () => { navigator.clipboard.writeText(result); setCopied(true); setTimeout(()=>setCopied(false),2000); };
-  const reset = () => { setCurrentStep(0);setFormData({});setSelectedMulti({});setResult(null);setScreen("form"); };
-
-  const inp = (val,err) => ({width:"100%",padding:"0.9rem 1rem",background:"#13131a",border:`1px solid ${err?"#e05555":val?"#c8b89a44":"#2a2a3a"}`,borderRadius:8,color:"#e8e4dc",fontSize:"0.95rem",fontFamily:"'EB Garamond',Georgia,serif",outline:"none",boxSizing:"border-box"});
-
   if (screen==="payment") return <PaymentForm formData={formData} onSuccess={generateCGV} onCancel={()=>setScreen("form")} />;
 
   if (screen==="generating") return (
-    <div style={{minHeight:"100vh",background:C.dark,color:"#e8e4dc",fontFamily:"'EB Garamond',Georgia,serif",display:"flex",alignItems:"center",justifyContent:"center",flexDirection:"column",gap:"2rem",position:"fixed",inset:0,zIndex:999}}>
-      <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
-      <div style={{fontSize:"3rem",animation:"spin 2s linear infinite"}}>⚙️</div>
+    <div className="gen-page">
+      <div className="spin">⚙️</div>
       <div style={{textAlign:"center"}}>
-        <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:"1.5rem",marginBottom:"0.5rem"}}>Paiement confirmé ✓</h2>
-        <p style={{color:"#888",fontSize:"0.9rem"}}>Rédaction de vos CGV personnalisées...</p>
+        <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:"1.4rem",marginBottom:".5rem"}}>Paiement confirmé ✓</h2>
+        <p style={{color:"#888",fontSize:".9rem"}}>Rédaction de vos CGV personnalisées...</p>
       </div>
     </div>
   );
 
   if (screen==="result"&&result) return (
-    <div style={{minHeight:"100vh",background:C.dark,color:"#e8e4dc",fontFamily:"'EB Garamond',Georgia,serif",padding:"2rem",position:"fixed",inset:0,overflowY:"auto",zIndex:999}}>
-      <div style={{maxWidth:800,margin:"0 auto"}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"2rem",flexWrap:"wrap",gap:"1rem"}}>
-          <div>
-            <div style={{color:C.goldLight,fontSize:"0.8rem",letterSpacing:"0.2em",textTransform:"uppercase",marginBottom:"0.5rem"}}>Paiement confirmé · Document généré ✓</div>
-            <h1 style={{fontFamily:"'Playfair Display',serif",fontSize:"2rem",fontWeight:700,margin:0}}>Vos CGV sont prêtes</h1>
-          </div>
-          <div style={{display:"flex",gap:"1rem",flexWrap:"wrap"}}>
-            <button onClick={copy} style={{padding:"0.75rem 1.5rem",background:copied?"#2d5a27":C.goldLight,color:copied?"#e8e4dc":C.ink,border:"none",borderRadius:8,cursor:"pointer",fontFamily:"inherit",fontWeight:600}}>
-              {copied?"✓ Copié !":"Copier le texte"}
-            </button>
-            <button onClick={reset} style={{padding:"0.75rem 1.5rem",background:"transparent",color:C.goldLight,border:`1px solid ${C.goldLight}`,borderRadius:8,cursor:"pointer",fontFamily:"inherit"}}>Nouvelle génération</button>
-            <button onClick={onBackHome} style={{padding:"0.75rem 1.5rem",background:"transparent",color:"#555",border:"1px solid #333",borderRadius:8,cursor:"pointer",fontFamily:"inherit"}}>← Accueil</button>
-          </div>
+    <div className="result-page">
+      <div className="result-header">
+        <div>
+          <div className="result-badge">Paiement confirmé · Document généré ✓</div>
+          <div className="result-title">Vos CGV sont prêtes</div>
         </div>
-        <div style={{background:"#13131a",border:"1px solid #2a2a3a",borderRadius:12,padding:"2.5rem",lineHeight:1.8,fontSize:"0.92rem",maxHeight:"70vh",overflow:"auto"}}>
+        <div className="result-actions">
+          <button onClick={()=>{navigator.clipboard.writeText(result);setCopied(true);setTimeout(()=>setCopied(false),2000);}} style={{background:copied?"#2d5a27":"#d4b896",color:copied?"#e8e4dc":"#0a0a0f"}}>{copied?"✓ Copié !":"Copier"}</button>
+          <button onClick={()=>{setCurrentStep(0);setFormData({});setSelectedMulti({});setResult(null);setScreen("form");}} style={{background:"transparent",color:"#d4b896",border:"1px solid #d4b896"}}>Nouveau</button>
+          <button onClick={onBackHome} style={{background:"transparent",color:"#555",border:"1px solid #333"}}>← Accueil</button>
+        </div>
+      </div>
+      <div className="result-body">
+        <div className="result-doc">
           {result.split('\n').map((line,i)=>{
-            if(line.startsWith('# ')) return <h1 key={i} style={{fontFamily:"'Playfair Display',serif",fontSize:"1.5rem",color:C.goldLight,borderBottom:"1px solid #2a2a3a",paddingBottom:"0.5rem",marginBottom:"1.5rem"}}>{line.replace('# ','')}</h1>;
-            if(line.startsWith('## ')) return <h2 key={i} style={{fontFamily:"'Playfair Display',serif",fontSize:"1.1rem",color:"#e8e4dc",marginTop:"2rem",marginBottom:"0.5rem",fontWeight:700}}>{line.replace('## ','')}</h2>;
-            if(line==='---') return <hr key={i} style={{border:"none",borderTop:"1px solid #2a2a3a",margin:"1.5rem 0"}}/>;
-            return <p key={i} style={{margin:line?"0 0 0.5rem":"0.5rem 0",color:line.startsWith('*')?"#888":"#c8c4bc"}} dangerouslySetInnerHTML={{__html:line.replace(/\*\*(.*?)\*\*/g,'<strong style="color:#e8e4dc">$1</strong>')}}/>;
+            if(line.startsWith('# ')) return <h1 key={i} style={{fontFamily:"'Playfair Display',serif",fontSize:"1.4rem",color:"#d4b896",borderBottom:"1px solid #2a2a3a",paddingBottom:".5rem",marginBottom:"1.25rem"}}>{line.replace('# ','')}</h1>;
+            if(line.startsWith('## ')) return <h2 key={i} style={{fontFamily:"'Playfair Display',serif",fontSize:"1rem",color:"#e8e4dc",marginTop:"1.75rem",marginBottom:".4rem",fontWeight:700}}>{line.replace('## ','')}</h2>;
+            if(line==='---') return <hr key={i} style={{border:"none",borderTop:"1px solid #2a2a3a",margin:"1.25rem 0"}}/>;
+            return <p key={i} style={{margin:line?"0 0 .4rem":"0.4rem 0",color:line.startsWith('*')?"#888":"#c8c4bc"}} dangerouslySetInnerHTML={{__html:line.replace(/\*\*(.*?)\*\*/g,'<strong style="color:#e8e4dc">$1</strong>')}}/>;
           })}
         </div>
-        <div style={{marginTop:"1.5rem",padding:"1rem 1.5rem",background:"#1a1208",border:"1px solid #3a2a08",borderRadius:8,fontSize:"0.82rem",color:"#a08050"}}>
-          ⚠️ Ce document est généré à titre informatif et ne remplace pas un conseil juridique professionnel.
-        </div>
+        <div className="result-disclaimer">⚠️ Ce document est généré à titre informatif et ne remplace pas un conseil juridique professionnel.</div>
       </div>
     </div>
   );
 
   return (
-    <div style={{minHeight:"100vh",background:C.dark,color:"#e8e4dc",fontFamily:"'EB Garamond',Georgia,serif",position:"fixed",inset:0,overflowY:"auto",zIndex:999}}>
-      <div style={{borderBottom:"1px solid #1e1e2e",padding:"1.25rem 2rem",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <button onClick={onBackHome} style={{background:"transparent",border:"none",cursor:"pointer",fontFamily:"'Playfair Display',serif",fontSize:"1.2rem",fontWeight:900,color:"#e8e4dc",letterSpacing:"-0.02em"}}>
-          Lex<span style={{color:C.goldLight}}>Gen</span>
-        </button>
-        <div style={{display:"flex",alignItems:"center",gap:"1rem"}}>
-          <span style={{fontSize:"0.85rem",color:"#666"}}>Étape {currentStep+1} / {STEPS.length}</span>
-          <span style={{padding:"0.35rem 0.9rem",background:"#13131a",border:"1px solid #2a2a3a",borderRadius:20,fontSize:"0.8rem",color:C.goldLight,fontWeight:700}}>9 €</span>
+    <div className="form-page">
+      <div className="form-nav">
+        <button className="form-nav__logo" onClick={onBackHome}>Lex<span>Gen</span></button>
+        <div className="form-nav__meta">
+          <span className="form-nav__step">Étape {currentStep+1} / {STEPS.length}</span>
+          <span className="form-nav__price">9 €</span>
         </div>
       </div>
-      <div style={{height:3,background:"#1e1e2e"}}>
-        <div style={{height:"100%",background:"linear-gradient(90deg,#c8b89a,#e8d4b0)",width:`${progress}%`,transition:"width 0.4s ease"}}/>
-      </div>
-      <div style={{maxWidth:640,margin:"0 auto",padding:"3rem 2rem"}}>
-        <div style={{marginBottom:"2.5rem"}}>
-          <div style={{fontSize:"2.5rem",marginBottom:"1rem"}}>{step.icon}</div>
-          <h2 style={{fontFamily:"'Playfair Display',serif",fontSize:"1.8rem",fontWeight:700,margin:0}}>{step.title}</h2>
-          <div style={{display:"flex",gap:"0.4rem",marginTop:"1rem"}}>
-            {STEPS.map((_,i)=><div key={i} style={{height:4,flex:1,borderRadius:2,background:i<=currentStep?C.goldLight:"#1e1e2e",transition:"background 0.3s"}}/>)}
-          </div>
+      <div className="progress-bar"><div className="progress-bar__fill" style={{width:`${progress}%`}}/></div>
+      <div className="form-body">
+        <div className="form-icon">{step.icon}</div>
+        <h2 className="form-title">{step.title}</h2>
+        <div className="step-dots">
+          {STEPS.map((_,i)=><div key={i} className={`step-dot${i<=currentStep?" step-dot--active":""}`}/>)}
         </div>
-        <div style={{display:"flex",flexDirection:"column",gap:"1.5rem"}}>
+        <div className="fields">
           {step.fields.map(field=>(
             <div key={field.key}>
-              <label style={{display:"block",fontSize:"0.85rem",color:C.goldLight,letterSpacing:"0.08em",marginBottom:"0.6rem",textTransform:"uppercase"}}>{field.label}</label>
-              {field.type==="text"||field.type==="email" ? (
-                <><input type={field.type} placeholder={field.placeholder} value={formData[field.key]||""} onChange={e=>handleField(field.key,e.target.value)} onBlur={e=>handleBlur(field.key,e.target.value)} style={inp(formData[field.key],fieldErrors[field.key])}/>
-                {fieldErrors[field.key]&&<div style={{color:"#e05555",fontSize:"0.8rem",marginTop:"0.4rem"}}>⚠ {fieldErrors[field.key]}</div>}</>
-              ):field.type==="textarea"?(
-                <textarea placeholder={field.placeholder} value={formData[field.key]||""} onChange={e=>handleField(field.key,e.target.value)} rows={3} style={{...inp(formData[field.key]),resize:"vertical"}}/>
+              <label className="field__label">{field.label}</label>
+              {field.type==="text"||field.type==="email" ? (<>
+                <input type={field.type} className={`field__input${fieldErrors[field.key]?" field__input--error":""}`} placeholder={field.placeholder} value={formData[field.key]||""} onChange={e=>handleField(field.key,e.target.value)} onBlur={e=>handleBlur(field.key,e.target.value)} />
+                {fieldErrors[field.key]&&<div className="field__error">⚠ {fieldErrors[field.key]}</div>}
+              </>):field.type==="textarea"?(
+                <textarea className="field__input" placeholder={field.placeholder} value={formData[field.key]||""} onChange={e=>handleField(field.key,e.target.value)} rows={3} style={{resize:"vertical"}}/>
               ):field.type==="select"?(
-                <select value={formData[field.key]||""} onChange={e=>handleField(field.key,e.target.value)} style={{...inp(formData[field.key]),color:formData[field.key]?"#e8e4dc":"#555",cursor:"pointer"}}>
+                <select className="field__input" value={formData[field.key]||""} onChange={e=>handleField(field.key,e.target.value)} style={{color:formData[field.key]?"#e8e4dc":"#555",cursor:"pointer",background:"#13131a"}}>
                   <option value="">Sélectionner...</option>
-                  {field.options.map(o=><option key={o} value={o}>{o}</option>)}
+                  {field.options.map(o=><option key={o} value={o} style={{background:"#13131a"}}>{o}</option>)}
                 </select>
               ):field.type==="multiselect"?(
-                <div style={{display:"flex",flexWrap:"wrap",gap:"0.5rem"}}>
-                  {field.options.map(o=>{const sel=(selectedMulti[field.key]||[]).includes(o);return<button key={o} onClick={()=>handleMulti(field.key,o)} style={{padding:"0.5rem 1rem",background:sel?"#c8b89a22":"transparent",border:`1px solid ${sel?C.goldLight:"#2a2a3a"}`,borderRadius:20,color:sel?C.goldLight:"#666",fontSize:"0.85rem",cursor:"pointer",fontFamily:"inherit",transition:"all 0.2s"}}>{sel?"✓ ":""}{o}</button>;})}
+                <div className="multiselect">
+                  {field.options.map(o=>{const sel=(selectedMulti[field.key]||[]).includes(o);return<button key={o} className={`multi-btn${sel?" multi-btn--active":""}`} onClick={()=>handleMulti(field.key,o)}>{sel?"✓ ":""}{o}</button>;})}
                 </div>
               ):null}
             </div>
           ))}
         </div>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:"3rem"}}>
-          <button onClick={()=>setCurrentStep(s=>s-1)} disabled={currentStep===0} style={{padding:"0.9rem 1.8rem",background:"transparent",border:"1px solid #2a2a3a",borderRadius:8,color:currentStep===0?"#333":"#888",cursor:currentStep===0?"default":"pointer",fontFamily:"inherit",fontSize:"0.95rem"}}>← Précédent</button>
+        <div className="form-actions">
+          <button className="btn-back" onClick={()=>setCurrentStep(s=>s-1)} disabled={currentStep===0} style={{opacity:currentStep===0?.3:1}}>← Précédent</button>
           {currentStep<STEPS.length-1?(
-            <button onClick={()=>setCurrentStep(s=>s+1)} disabled={!isStepValid()} style={{padding:"0.9rem 2rem",background:isStepValid()?C.goldLight:"#1e1e2e",color:isStepValid()?C.ink:"#333",border:"none",borderRadius:8,cursor:isStepValid()?"pointer":"default",fontFamily:"inherit",fontSize:"0.95rem",fontWeight:700,transition:"all 0.2s"}}>Suivant →</button>
+            <button className="btn-next" onClick={()=>setCurrentStep(s=>s+1)} disabled={!isStepValid()}>Suivant →</button>
           ):(
-            <button onClick={()=>setScreen("payment")} disabled={!isStepValid()} style={{padding:"0.9rem 2rem",background:isStepValid()?"linear-gradient(135deg,#c8b89a,#e8d4b0)":"#1e1e2e",color:isStepValid()?C.ink:"#333",border:"none",borderRadius:8,cursor:isStepValid()?"pointer":"default",fontFamily:"inherit",fontSize:"0.95rem",fontWeight:700}}>💳 Payer 9 € et générer →</button>
+            <button className="btn-next" onClick={()=>setScreen("payment")} disabled={!isStepValid()}>💳 Payer 9 € →</button>
           )}
         </div>
         {currentStep===STEPS.length-1&&(
-          <div style={{marginTop:"1.5rem",display:"flex",justifyContent:"center",gap:"2rem",fontSize:"0.78rem",color:"#444"}}>
-            <span>🔒 Paiement sécurisé Stripe</span><span>⚡ 30 secondes</span><span>✓ Satisfait ou remboursé</span>
-          </div>
+          <div className="form-trust"><span>🔒 Stripe</span><span>⚡ 30 secondes</span><span>✓ Remboursé si insatisfait</span></div>
         )}
       </div>
     </div>
   );
 }
 
-// ─────────────────────────────────────────────
-// APP ROOT — navigation entre pages
-// ─────────────────────────────────────────────
-export default function App() {
-  const [page, setPage] = useState("landing"); // "landing" | "generator"
+// ── LANDING ───────────────────────────────────
+function Landing({ onStart }) {
+  const [faqOpen, setFaqOpen] = useState(null);
 
-  if (page === "generator") return <Generator onBackHome={() => setPage("landing")} />;
-  return <Landing onStart={() => setPage("generator")} />;
+  useEffect(() => {
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => { if(e.isIntersecting) e.target.classList.add("vis"); });
+    }, { threshold: 0.08 });
+    document.querySelectorAll(".reveal").forEach(el => obs.observe(el));
+    return () => obs.disconnect();
+  }, []);
+
+  const faqs = [
+    ["Ces CGV ont-elles une valeur juridique ?","Les CGV générées couvrent les mentions obligatoires imposées par la directive 2011/83/UE et le RGPD. Pour la grande majorité des e-commerçants, elles sont directement utilisables. Nous recommandons une relecture par un professionnel pour les activités à risque élevé."],
+    ["Puis-je vendre dans plusieurs pays ?","Oui. Vous sélectionnez plusieurs pays lors de la configuration et choisissez la langue de rédaction parmi 6 options. Les mentions s'adaptent aux marchés sélectionnés."],
+    ["Que faire si mon activité change ?","Générez un nouveau document à tout moment pour 9 €. Nous recommandons une mise à jour à chaque changement significatif de votre activité."],
+    ["Quelle est votre politique de remboursement ?","Si le document ne vous convient pas, contactez-nous dans les 7 jours. Remboursement intégral, sans question posée."],
+  ];
+
+  return (
+    <div style={{fontFamily:"'EB Garamond',Georgia,serif",background:"#f5f0e8",color:"#1a1410"}}>
+
+      {/* NAV */}
+      <nav className="nav">
+        <div className="nav__inner">
+          <button className="nav__logo" onClick={onStart}>Lex<span style={{color:"#b8966a"}}>Gen</span></button>
+          <ul className="nav__links" style={{display:"flex"}}>
+            <li><a href="#comment" className="nav__link">Comment ça marche</a></li>
+            <li><a href="#tarif" className="nav__link">Tarif</a></li>
+            <li><a href="#faq" className="nav__link">FAQ</a></li>
+            <li><button className="nav__cta" onClick={onStart}>Générer mes CGV</button></li>
+          </ul>
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <div style={{paddingTop:60}}>
+        <div className="hero">
+          <div className="container">
+            <div className="hero__eyebrow reveal">Conforme droit européen & RGPD</div>
+            <h1 className="hero__title reveal">Vos CGV <em>rédigées</em><br/>en 5 minutes.</h1>
+            <p className="hero__sub reveal">Fini les templates copiés-collés. LexGen génère des Conditions Générales de Vente personnalisées, conformes et prêtes à l'emploi — pour 9 €.</p>
+            <div className="hero__actions reveal">
+              <button className="btn btn--dark" onClick={onStart}>Générer mes CGV — 9 €</button>
+              <a href="#comment" className="nav__link" style={{fontSize:"1rem"}}>Comment ça marche →</a>
+            </div>
+            <div className="hero__proof reveal">
+              {[["2 400+","Documents générés"],["6","Langues disponibles"],["9 €","Paiement unique"]].map(([n,l])=>(
+                <div className="proof__item" key={l}>
+                  <span className="proof__num">{n}</span>
+                  <span className="proof__label">{l}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* TRUST */}
+      <div className="trust">
+        <div className="trust__inner">
+          {[["🔒","Paiement sécurisé Stripe"],["⚡","Document en 30 secondes"],["🌍","6 langues"],["✦","Directive 2011/83/UE"]].map(([i,t])=>(
+            <div className="trust__item" key={t}><span>{i}</span><span>{t}</span></div>
+          ))}
+        </div>
+      </div>
+
+      {/* PROBLEM */}
+      <section className="section section--tinted">
+        <div className="container">
+          <div className="section__label reveal">Le problème</div>
+          <h2 className="section__title reveal">Ce que les e-commerçants <em>évitent</em><br/>jusqu'au dernier moment</h2>
+          <div className="pain-list">
+            {[["😰","Avocat trop cher","Un juriste facture entre 300 € et 800 € pour rédiger vos CGV. Hors de portée pour une micro-entreprise."],
+              ["📋","Templates inutilisables","Les modèles gratuits sont génériques, non conformes à votre activité et potentiellement obsolètes."],
+              ["⚖️","Risque juridique réel","Des CGV absentes exposent à des amendes DGCCRF pouvant atteindre 15 000 €."]
+            ].map(([icon,title,desc])=>(
+              <div className="pain-item reveal" key={title}>
+                <div className="pain-item__icon">{icon}</div>
+                <div><div className="pain-item__title">{title}</div><div className="pain-item__desc">{desc}</div></div>
+              </div>
+            ))}
+          </div>
+          <div className="quote reveal">
+            <p className="quote__text">"J'ai lancé ma boutique Shopify sans CGV pendant 8 mois. Un client m'a menacé d'une plainte. Ça m'aurait coûté une fortune si j'avais attendu encore."</p>
+            <div className="quote__name">Marie-Claire D.</div>
+            <div className="quote__role">Auto-entrepreneuse, boutique cosmétiques naturels</div>
+          </div>
+        </div>
+      </section>
+
+      {/* HOW */}
+      <section className="section" id="comment">
+        <div className="container">
+          <div style={{textAlign:"center",marginBottom:"2.5rem"}}>
+            <div className="section__label reveal" style={{justifyContent:"center"}}>Comment ça marche</div>
+            <h2 className="section__title reveal">Trois étapes, <em>c'est tout.</em></h2>
+          </div>
+          <div className="steps">
+            {[["1","Remplissez le formulaire","15 questions sur votre activité. Moins de 3 minutes."],
+              ["2","Payez 9 €","Paiement sécurisé par carte. Paiement unique, aucun abonnement."],
+              ["3","Récupérez votre document","CGV générées instantanément. Copiez-collez sur votre site."]
+            ].map(([num,title,desc])=>(
+              <div className="step reveal" key={num}>
+                <div className="step__num">{num}</div>
+                <div><div className="step__title">{title}</div><div className="step__desc">{desc}</div></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* TESTIMONIALS */}
+      <section className="section section--tinted">
+        <div className="container">
+          <div style={{textAlign:"center",marginBottom:"2rem"}}>
+            <div className="section__label reveal" style={{justifyContent:"center"}}>Témoignages</div>
+            <h2 className="section__title reveal">Ce qu'en disent <em>nos clients</em></h2>
+          </div>
+          <div className="testi-grid">
+            {[["★★★★★","Impeccable. J'ai rempli le formulaire en 4 minutes, les CGV étaient prêtes immédiatement.","Thomas B.","Fondateur SaaS, Paris"],
+              ["★★★★★","Enfin un outil sérieux. Les CGV sont en français juridique propre, ça inspire confiance.","Sophie L.","Boutique mode, Lyon"],
+              ["★★★★☆","Pour 9 €, c'est vraiment imbattable. Les CGV sont adaptées à mon activité de formation.","Julien M.","Formateur, Bordeaux"]
+            ].map(([stars,text,name,role])=>(
+              <div className="testi-card reveal" key={name}>
+                <div className="testi-stars">{stars}</div>
+                <p className="testi-text">"{text}"</p>
+                <div className="testi-name">{name}</div>
+                <div className="testi-role">{role}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* PRICING */}
+      <section className="section section--dark" id="tarif">
+        <div className="container--sm">
+          <div className="section__label reveal">Tarif</div>
+          <h2 className="section__title reveal">Simple, <em>transparent.</em></h2>
+          <p className="reveal" style={{color:"rgba(245,240,232,.6)",lineHeight:1.8,marginBottom:".5rem"}}>Pas d'abonnement. Pas de frais cachés. Vous payez une fois, vous recevez vos CGV immédiatement.</p>
+          <div className="price-card reveal">
+            <div><span className="price-currency">€</span><span className="price-amount">9</span></div>
+            <div className="price-desc">Paiement unique · Sans abonnement</div>
+            <ul className="price-features">
+              {["CGV complètes en 8+ articles","Personnalisées à votre activité","Conformes directive 2011/83/UE & RGPD","6 langues disponibles","Livraison instantanée","Satisfait ou remboursé"].map(f=><li key={f}>{f}</li>)}
+            </ul>
+            <button className="btn btn--gold btn--full" onClick={onStart} style={{fontSize:"1rem",fontWeight:700,padding:"1rem"}}>Générer mes CGV maintenant</button>
+            <div className="price-note">🔒 Paiement sécurisé · Satisfait ou remboursé</div>
+          </div>
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="section" id="faq">
+        <div className="container--sm">
+          <div style={{textAlign:"center",marginBottom:"2rem"}}>
+            <div className="section__label reveal" style={{justifyContent:"center"}}>FAQ</div>
+            <h2 className="section__title reveal">Vos questions, <em>nos réponses</em></h2>
+          </div>
+          {faqs.map(([q,a],i)=>(
+            <div key={i} className={`faq-item reveal${faqOpen===i?" faq-item--open":""}`} onClick={()=>setFaqOpen(faqOpen===i?null:i)}>
+              <div className="faq-q">{q}<span className="faq-icon">+</span></div>
+              <div className="faq-a">{a}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="section section--tinted" style={{textAlign:"center"}}>
+        <div className="container--sm">
+          <div className="section__label reveal" style={{justifyContent:"center"}}>Prêt ?</div>
+          <h2 className="section__title reveal">Protégez votre activité <em>aujourd'hui.</em></h2>
+          <p className="reveal" style={{fontSize:"1.05rem",color:"#4a4035",marginBottom:"2rem",lineHeight:1.7}}>Rejoignez plus de 2 400 e-commerçants qui ont sécurisé leur boutique. 5 minutes et 9 €.</p>
+          <button className="btn btn--dark reveal" onClick={onStart} style={{fontSize:"1.05rem",padding:"1rem 2.5rem"}}>Générer mes CGV — 9 € →</button>
+          <p className="reveal" style={{marginTop:"1rem",fontSize:".82rem",color:"#4a4035"}}>Paiement sécurisé · Livraison instantanée · Satisfait ou remboursé</p>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer>
+        <div className="footer__inner" style={{maxWidth:1100,margin:"0 auto",padding:"1.5rem 1.25rem"}}>
+          <div className="footer__logo">Lex<span>Gen</span></div>
+          <div className="footer__copy">© 2026 LexGen. Tous droits réservés.</div>
+          <div className="footer__links">
+            {["Mentions légales","Confidentialité","Contact"].map(l=><a href="#" key={l}>{l}</a>)}
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}
+
+// ── APP ROOT ──────────────────────────────────
+export default function App() {
+  const [page, setPage] = useState("landing");
+  return (
+    <>
+      <style>{globalCss}</style>
+      {page==="generator"
+        ? <Generator onBackHome={()=>setPage("landing")} />
+        : <Landing onStart={()=>setPage("generator")} />
+      }
+    </>
+  );
 }
