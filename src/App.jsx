@@ -265,7 +265,7 @@ const globalCss = `
 
   /* DESKTOP ENHANCEMENTS */
   @media(min-width: 768px) {
-    .nav__links { display: flex; }
+    .nav__links { display: flex !important; }
     .container { padding: 0 2rem; }
     .container--sm { padding: 0 2rem; }
     .nav__inner { padding: 1.1rem 2rem; }
