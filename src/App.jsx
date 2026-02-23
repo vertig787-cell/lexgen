@@ -105,7 +105,7 @@ const globalCss = `
   .nav__inner { display: flex; justify-content: space-between; align-items: center; padding: .875rem 1.25rem; }
   .nav__logo { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 900; color: #1a1410; text-decoration: none; cursor: pointer; background: none; border: none; }
   .nav__logo span { color: #b8966a; }
-  .nav__links { display: flex; gap: 2rem; align-items: center; list-style: none; }
+  .nav__links { display: none; align-items: center; list-style: none; gap: 2rem; }
   .nav__link { color: #4a4035; text-decoration: none; font-size: .9rem; }
   .nav__cta { background: #1a1410; color: #f5f0e8 !important; padding: .5rem 1.25rem; font-size: .82rem !important; letter-spacing: .08em; text-transform: uppercase; border: none; cursor: pointer; font-family: inherit; }
 
@@ -265,6 +265,7 @@ const globalCss = `
 
   /* DESKTOP ENHANCEMENTS */
   @media(min-width: 768px) {
+    .nav__links { display: flex; }
     .container { padding: 0 2rem; }
     .container--sm { padding: 0 2rem; }
     .nav__inner { padding: 1.1rem 2rem; }
