@@ -103,9 +103,8 @@ const C = {
 const css = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap');
   *{box-sizing:border-box;margin:0;padding:0;}
-  .page-reset{display:block!important;grid-template-columns:none!important;}
   html{scroll-behavior:smooth;}
-  body{overflow-x:hidden;}
+  body{overflow-x:hidden;width:100%;max-width:100vw;}
   .reveal{opacity:0;transform:translateY(28px);transition:opacity 0.7s ease,transform 0.7s ease;}
   .reveal.vis{opacity:1;transform:translateY(0);}
   .d1{transition-delay:0.1s}.d2{transition-delay:0.2s}.d3{transition-delay:0.3s}
@@ -118,44 +117,60 @@ const css = `
   .hero-anim-4{opacity:0;animation:fadeUp 0.8s 0.8s forwards;}
   .hero-anim-5{opacity:0;animation:fadeUp 0.8s 1.0s forwards;}
   .doc-float{animation:floatDoc 4s ease-in-out infinite;}
-  .btn-primary{background:#1a1410;color:#f5f0e8;padding:1rem 2.5rem;font-family:'EB Garamond',serif;font-size:1rem;letter-spacing:0.08em;border:2px solid #1a1410;cursor:pointer;text-decoration:none;display:inline-block;transition:all 0.25s;position:relative;overflow:hidden;}
+  .btn-primary{background:#1a1410;color:#f5f0e8;padding:1rem 2.5rem;font-family:'EB Garamond',serif;font-size:1rem;letter-spacing:0.08em;border:2px solid #1a1410;cursor:pointer;text-decoration:none;display:inline-block;transition:all 0.25s;}
   .btn-primary:hover{background:#b8966a;border-color:#b8966a;}
   .faq-a{max-height:0;overflow:hidden;transition:max-height 0.4s ease,padding 0.3s;}
   .faq-open .faq-a{max-height:300px;padding-top:1rem;}
   .faq-icon{transition:transform 0.3s;}
   .faq-open .faq-icon{transform:rotate(45deg);}
   .pain-item{transition:border-color 0.2s,transform 0.2s;}
-  .pain-item:hover{border-color:#b8966a!important;transform:translateX(4px);}
+  .pain-item:hover{border-color:#b8966a!important;}
   .testi-card{transition:transform 0.2s,box-shadow 0.2s;}
-  .testi-card:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(26,20,16,0.1)!important;}
   .step-num{transition:background 0.3s;}
   .step:hover .step-num{background:#b8966a!important;}
   select option{background:#1a1410;color:#f5f0e8;}
-  /* ── RESPONSIVE MOBILE ── */
-  @media(max-width:768px){
-    nav{padding:1rem 1.5rem!important;}
-    .nav-links{display:none!important;}
-    .hero-section{grid-template-columns:1fr!important;min-height:auto!important;}
-    .hero-right{display:none!important;}
-    .hero-left{padding:5rem 1.5rem 3rem!important;}
-    .hero-proof{gap:1rem!important;flex-wrap:wrap!important;}
-    .trust-bar-inner{gap:1rem!important;padding:1rem 1.5rem!important;flex-wrap:wrap!important;}
-    .problem-inner{grid-template-columns:1fr!important;gap:2rem!important;}
-    .problem-quote{display:none!important;}
-    .steps-grid{grid-template-columns:1fr!important;}
-    .steps-line{display:none!important;}
-    .step{padding:0 0 2rem 0!important;text-align:left!important;display:flex!important;gap:1rem!important;align-items:flex-start!important;}
-    .step-num{margin:0!important;flex-shrink:0!important;width:3rem!important;height:3rem!important;font-size:1rem!important;}
-    .step-content{flex:1;}
-    .testi-grid{grid-template-columns:1fr!important;}
-    .pricing-inner{grid-template-columns:1fr!important;gap:2rem!important;}
-    .section-inner{padding:4rem 1.5rem!important;}
-    footer{flex-direction:column!important;gap:1rem!important;text-align:center!important;padding:2rem 1.5rem!important;}
-    .footer-links{justify-content:center!important;}
-    h1{font-size:2.5rem!important;}
-    h2{font-size:1.8rem!important;}
-  }
 
+  @media(max-width:768px){
+    /* NAV */
+    nav{padding:1rem 1.25rem!important;}
+    .nav-links{display:none!important;}
+
+    /* HERO */
+    .hero-section{display:block!important;padding-top:70px!important;}
+    .hero-left{padding:2.5rem 1.25rem 3rem!important;}
+    .hero-right{display:none!important;}
+    h1{font-size:2.2rem!important;line-height:1.1!important;}
+    .hero-sub{font-size:1rem!important;margin-bottom:2rem!important;}
+    .hero-cta-group{flex-direction:column!important;align-items:flex-start!important;gap:1rem!important;}
+    .btn-primary{width:100%!important;text-align:center!important;padding:1rem!important;}
+    .hero-proof{gap:1.25rem!important;margin-top:2.5rem!important;flex-wrap:wrap!important;}
+
+    /* TRUST BAR */
+    .trust-bar-inner{padding:1rem 1.25rem!important;gap:0.75rem 1.5rem!important;flex-wrap:wrap!important;}
+
+    /* SECTIONS */
+    .problem-inner{display:block!important;padding:3.5rem 1.25rem!important;}
+    .problem-quote{display:none!important;}
+    .steps-section{padding:3.5rem 1.25rem!important;}
+    .steps-grid{display:block!important;}
+    .steps-line{display:none!important;}
+    .step{display:flex!important;gap:1rem!important;align-items:flex-start!important;padding:0 0 2rem!important;text-align:left!important;}
+    .step-num{margin:0!important;flex-shrink:0!important;width:3rem!important;height:3rem!important;font-size:1rem!important;}
+    .testi-section{padding:3.5rem 1.25rem!important;}
+    .testi-grid{display:block!important;}
+    .testi-card{margin-bottom:1.25rem!important;}
+    .pricing-section{padding:3.5rem 1.25rem!important;}
+    .pricing-inner{display:block!important;}
+    .pricing-text{margin-bottom:2rem!important;}
+    .faq-section{padding:3.5rem 1.25rem!important;}
+    .cta-section{padding:3.5rem 1.25rem!important;}
+    .section-inner{padding:3.5rem 1.25rem!important;}
+    h2{font-size:1.8rem!important;}
+
+    /* FOOTER */
+    .footer-inner{flex-direction:column!important;gap:1rem!important;text-align:center!important;padding:2rem 1.25rem!important;}
+    .footer-links{justify-content:center!important;}
+  }
 `;
 
 // ─────────────────────────────────────────────
@@ -191,7 +206,7 @@ function Landing({ onStart }) {
       <style>{css}</style>
 
       {/* NAV */}
-      <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,display:"flex",justifyContent:"space-between",alignItems:"center",padding:"1.25rem 4rem",background:C.cream,borderBottom:`1px solid rgba(26,20,16,0.12)`,boxShadow:scrolled?"0 2px 20px rgba(26,20,16,0.08)":"none",transition:"box-shadow 0.3s"}}>
+      <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:100,display:"flex",justifyContent:"space-between",alignItems:"center",padding:"1.25rem 4rem",width:"100%",background:C.cream,borderBottom:`1px solid rgba(26,20,16,0.12)`,boxShadow:scrolled?"0 2px 20px rgba(26,20,16,0.08)":"none",transition:"box-shadow 0.3s"}}>
         <span style={{fontFamily:"'Playfair Display',serif",fontSize:"1.5rem",fontWeight:900,letterSpacing:"-0.02em"}}>Lex<span style={{color:C.gold}}>Gen</span></span>
         <div style={{display:"flex",gap:"2.5rem",alignItems:"center"}}>
           <a href="#comment" style={{color:C.inkLight,textDecoration:"none",fontSize:"0.9rem",letterSpacing:"0.05em"}}>Comment ça marche</a>
@@ -206,7 +221,7 @@ function Landing({ onStart }) {
 
       {/* HERO */}
       <section className="hero-section" style={{minHeight:"100vh",display:"grid",gridTemplateColumns:"1fr 1fr",paddingTop:80,position:"relative",overflow:"hidden"}}>
-        <div className="hero-left" style={{display:"flex",flexDirection:"column",justifyContent:"center",padding:"5rem 4rem",zIndex:2}}>
+        <div className="hero-left" style={{display:"flex",flexDirection:"column",justifyContent:"center",padding:"5rem 4rem",zIndex:2,minWidth:0}}>
           <div className="hero-anim-1" style={{display:"inline-flex",alignItems:"center",gap:"0.75rem",fontSize:"0.8rem",letterSpacing:"0.2em",textTransform:"uppercase",color:C.gold,marginBottom:"2rem"}}>
             <span style={{width:30,height:1,background:C.gold,display:"block"}}></span>
             Conforme droit européen & RGPD
@@ -214,10 +229,10 @@ function Landing({ onStart }) {
           <h1 className="hero-anim-2" style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(3rem,5vw,5rem)",fontWeight:900,lineHeight:1.05,letterSpacing:"-0.02em",marginBottom:"2rem"}}>
             Vos CGV <em style={{fontStyle:"italic",color:C.gold}}>rédigées</em><br/>en 5 minutes.
           </h1>
-          <p className="hero-anim-3" style={{fontSize:"1.2rem",color:C.inkLight,maxWidth:420,lineHeight:1.7,marginBottom:"3rem"}}>
+          <p className="hero-anim-3" className="hero-sub" style={{fontSize:"1.2rem",color:C.inkLight,maxWidth:420,lineHeight:1.7,marginBottom:"3rem"}}>
             Fini les templates copiés-collés qui n'engagent que vous. LexGen génère des CGV personnalisées, conformes et prêtes à l'emploi — pour 9 €.
           </p>
-          <div className="hero-anim-4" style={{display:"flex",alignItems:"center",gap:"2rem"}}>
+          <div className="hero-anim-4" className="hero-cta-group" style={{display:"flex",alignItems:"center",gap:"2rem"}}>
             <button onClick={onStart} className="btn-primary">Générer mes CGV — 9 €</button>
             <a href="#comment" style={{color:C.inkLight,textDecoration:"none",fontSize:"0.9rem",letterSpacing:"0.05em"}}>Voir comment ça marche →</a>
           </div>
@@ -265,9 +280,9 @@ function Landing({ onStart }) {
       </div>
 
       {/* PROBLEM */}
-      <section style={{background:C.creamDark,borderTop:`1px solid rgba(26,20,16,0.1)`,borderBottom:`1px solid rgba(26,20,16,0.1)`,padding:"7rem 4rem"}}>
+      <section className="testi-section" style={{background:C.creamDark,borderTop:`1px solid rgba(26,20,16,0.1)`,borderBottom:`1px solid rgba(26,20,16,0.1)`,padding:"7rem 4rem"}}>
         <div className="problem-inner" style={{maxWidth:1100,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6rem",alignItems:"center"}}>
-          <div>
+          <div className="pricing-text">
             <div className="reveal" style={{fontSize:"0.75rem",letterSpacing:"0.25em",textTransform:"uppercase",color:C.gold,display:"flex",alignItems:"center",gap:"1rem",marginBottom:"1.5rem"}}>Le problème<span style={{width:40,height:1,background:C.gold,display:"block"}}/></div>
             <h2 className="reveal d1" style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(2rem,3vw,3rem)",fontWeight:700,lineHeight:1.1,letterSpacing:"-0.02em",marginBottom:"2rem"}}>Ce que les e-commerçants <em style={{fontStyle:"italic",color:C.gold}}>évitent</em> jusqu'au dernier moment</h2>
             <div style={{display:"flex",flexDirection:"column",gap:"1.25rem"}}>
@@ -298,7 +313,7 @@ function Landing({ onStart }) {
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="comment" style={{padding:"7rem 4rem"}}>
+      <section id="comment" className="steps-section" style={{padding:"7rem 4rem"}}>
         <div style={{maxWidth:1100,margin:"0 auto"}}>
           <div style={{textAlign:"center",marginBottom:"5rem"}}>
             <div className="reveal" style={{fontSize:"0.75rem",letterSpacing:"0.25em",textTransform:"uppercase",color:C.gold,display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem",marginBottom:"1.5rem"}}>Comment ça marche<span style={{width:40,height:1,background:C.gold,display:"block"}}/></div>
@@ -347,7 +362,7 @@ function Landing({ onStart }) {
       </section>
 
       {/* PRICING */}
-      <section id="tarif" style={{background:C.ink,color:C.cream,padding:"7rem 4rem"}}>
+      <section id="tarif" className="pricing-section" style={{background:C.ink,color:C.cream,padding:"7rem 4rem"}}>
         <div className="pricing-inner" style={{maxWidth:900,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:"4rem",alignItems:"center"}}>
           <div>
             <div className="reveal" style={{fontSize:"0.75rem",letterSpacing:"0.25em",textTransform:"uppercase",color:C.goldLight,display:"flex",alignItems:"center",gap:"1rem",marginBottom:"1.5rem"}}>Tarif<span style={{width:40,height:1,background:C.goldLight,display:"block"}}/></div>
@@ -377,7 +392,7 @@ function Landing({ onStart }) {
       </section>
 
       {/* FAQ */}
-      <section id="faq" style={{padding:"7rem 4rem"}}>
+      <section id="faq" className="faq-section" style={{padding:"7rum 4rem"}}>
         <div style={{maxWidth:800,margin:"0 auto"}}>
           <div style={{textAlign:"center",marginBottom:"4rem"}}>
             <div className="reveal" style={{fontSize:"0.75rem",letterSpacing:"0.25em",textTransform:"uppercase",color:C.gold,display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem",marginBottom:"1.5rem"}}>FAQ<span style={{width:40,height:1,background:C.gold,display:"block"}}/></div>
@@ -396,7 +411,7 @@ function Landing({ onStart }) {
       </section>
 
       {/* FINAL CTA */}
-      <section style={{background:C.creamDark,borderTop:`1px solid rgba(26,20,16,0.1)`,padding:"7rem 4rem",textAlign:"center"}}>
+      <section className="cta-section" style={{background:C.creamDark,borderTop:`1px solid rgba(26,20,16,0.1)`,padding:"7rem 4rem",textAlign:"center"}}>
         <div style={{maxWidth:700,margin:"0 auto"}}>
           <div className="reveal" style={{fontSize:"0.75rem",letterSpacing:"0.25em",textTransform:"uppercase",color:C.gold,display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem",marginBottom:"1.5rem"}}>Prêt ?<span style={{width:40,height:1,background:C.gold,display:"block"}}/></div>
           <h2 className="reveal d1" style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(2rem,3vw,3.5rem)",fontWeight:700,lineHeight:1.1,letterSpacing:"-0.02em",marginBottom:"1.5rem"}}>Protégez votre activité <em style={{fontStyle:"italic",color:C.gold}}>aujourd'hui.</em></h2>
