@@ -560,7 +560,7 @@ function Landing({ onStart }) {
       <nav className="nav">
         <div className="nav__inner">
           <button className="nav__logo" onClick={onStart}>Lex<span style={{color:"#b8966a"}}>Gen</span></button>
-          <ul className="nav__links" style={{display:"flex"}}>
+          <ul className="nav__links">
             <li><a href="#comment" className="nav__link">Comment ça marche</a></li>
             <li><a href="#tarif" className="nav__link">Tarif</a></li>
             <li><a href="#faq" className="nav__link">FAQ</a></li>
