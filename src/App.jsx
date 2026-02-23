@@ -131,6 +131,31 @@ const css = `
   .step-num{transition:background 0.3s;}
   .step:hover .step-num{background:#b8966a!important;}
   select option{background:#1a1410;color:#f5f0e8;}
+  /* ── RESPONSIVE MOBILE ── */
+  @media(max-width:768px){
+    nav{padding:1rem 1.5rem!important;}
+    .nav-links{display:none!important;}
+    .hero-section{grid-template-columns:1fr!important;min-height:auto!important;}
+    .hero-right{display:none!important;}
+    .hero-left{padding:5rem 1.5rem 3rem!important;}
+    .hero-proof{gap:1rem!important;flex-wrap:wrap!important;}
+    .trust-bar-inner{gap:1rem!important;padding:1rem 1.5rem!important;flex-wrap:wrap!important;}
+    .problem-inner{grid-template-columns:1fr!important;gap:2rem!important;}
+    .problem-quote{display:none!important;}
+    .steps-grid{grid-template-columns:1fr!important;}
+    .steps-line{display:none!important;}
+    .step{padding:0 0 2rem 0!important;text-align:left!important;display:flex!important;gap:1rem!important;align-items:flex-start!important;}
+    .step-num{margin:0!important;flex-shrink:0!important;width:3rem!important;height:3rem!important;font-size:1rem!important;}
+    .step-content{flex:1;}
+    .testi-grid{grid-template-columns:1fr!important;}
+    .pricing-inner{grid-template-columns:1fr!important;gap:2rem!important;}
+    .section-inner{padding:4rem 1.5rem!important;}
+    footer{flex-direction:column!important;gap:1rem!important;text-align:center!important;padding:2rem 1.5rem!important;}
+    .footer-links{justify-content:center!important;}
+    h1{font-size:2.5rem!important;}
+    h2{font-size:1.8rem!important;}
+  }
+
 `;
 
 // ─────────────────────────────────────────────
@@ -172,7 +197,7 @@ function Landing({ onStart }) {
           <a href="#comment" style={{color:C.inkLight,textDecoration:"none",fontSize:"0.9rem",letterSpacing:"0.05em"}}>Comment ça marche</a>
           <a href="#tarif" style={{color:C.inkLight,textDecoration:"none",fontSize:"0.9rem",letterSpacing:"0.05em"}}>Tarif</a>
           <a href="#faq" style={{color:C.inkLight,textDecoration:"none",fontSize:"0.9rem",letterSpacing:"0.05em"}}>FAQ</a>
-          <button onClick={onStart} style={{background:C.ink,color:C.cream,padding:"0.6rem 1.5rem",border:"none",cursor:"pointer",fontFamily:"inherit",fontSize:"0.85rem",letterSpacing:"0.1em",textTransform:"uppercase",transition:"background 0.2s"}}
+          <button onClick={onStart} className="nav-cta" style={{background:C.ink,color:C.cream,padding:"0.6rem 1.5rem",border:"none",cursor:"pointer",fontFamily:"inherit",fontSize:"0.85rem",letterSpacing:"0.1em",textTransform:"uppercase",transition:"background 0.2s"}}
             onMouseOver={e=>e.target.style.background=C.gold} onMouseOut={e=>e.target.style.background=C.ink}>
             Générer mes CGV
           </button>
@@ -180,8 +205,8 @@ function Landing({ onStart }) {
       </nav>
 
       {/* HERO */}
-      <section style={{minHeight:"100vh",display:"grid",gridTemplateColumns:"1fr 1fr",paddingTop:80,position:"relative",overflow:"hidden"}}>
-        <div style={{display:"flex",flexDirection:"column",justifyContent:"center",padding:"5rem 4rem",zIndex:2}}>
+      <section className="hero-section" style={{minHeight:"100vh",display:"grid",gridTemplateColumns:"1fr 1fr",paddingTop:80,position:"relative",overflow:"hidden"}}>
+        <div className="hero-left" style={{display:"flex",flexDirection:"column",justifyContent:"center",padding:"5rem 4rem",zIndex:2}}>
           <div className="hero-anim-1" style={{display:"inline-flex",alignItems:"center",gap:"0.75rem",fontSize:"0.8rem",letterSpacing:"0.2em",textTransform:"uppercase",color:C.gold,marginBottom:"2rem"}}>
             <span style={{width:30,height:1,background:C.gold,display:"block"}}></span>
             Conforme droit européen & RGPD
@@ -196,7 +221,7 @@ function Landing({ onStart }) {
             <button onClick={onStart} className="btn-primary">Générer mes CGV — 9 €</button>
             <a href="#comment" style={{color:C.inkLight,textDecoration:"none",fontSize:"0.9rem",letterSpacing:"0.05em"}}>Voir comment ça marche →</a>
           </div>
-          <div className="hero-anim-5" style={{display:"flex",gap:"2.5rem",marginTop:"4rem"}}>
+          <div className="hero-anim-5" className="hero-proof" style={{display:"flex",gap:"2.5rem",marginTop:"4rem"}}>
             {[["2 400+","Documents générés"],["6","Langues disponibles"],["9 €","Paiement unique"]].map(([num,label],i)=>(
               <div key={i} style={{display:"flex",gap:"0 2.5rem",alignItems:"center"}}>
                 {i>0 && <div style={{width:1,background:"rgba(26,20,16,0.15)",alignSelf:"stretch",marginRight:"2.5rem"}}/>}
@@ -210,7 +235,7 @@ function Landing({ onStart }) {
         </div>
 
         {/* Doc preview */}
-        <div style={{background:C.creamDark,borderLeft:`1px solid rgba(26,20,16,0.1)`,display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"hidden"}}>
+        <div className="hero-right" style={{background:C.creamDark,borderLeft:`1px solid rgba(26,20,16,0.1)`,display:"flex",alignItems:"center",justifyContent:"center",position:"relative",overflow:"hidden"}}>
           <div style={{position:"absolute",inset:0,backgroundImage:"repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(26,20,16,0.04) 28px,rgba(26,20,16,0.04) 29px)"}}/>
           <div className="doc-float" style={{position:"relative",zIndex:2,width:320,background:"white",boxShadow:"0 20px 60px rgba(26,20,16,0.15)",padding:"2rem",transform:"rotate(-2deg)"}}>
             <div style={{position:"absolute",top:-15,right:-15,width:72,height:72,background:C.gold,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",color:"white",fontFamily:"'Playfair Display',serif",fontSize:"0.6rem",fontWeight:700,letterSpacing:"0.05em",textAlign:"center",lineHeight:1.3,textTransform:"uppercase",transform:"rotate(15deg)",boxShadow:"0 4px 12px rgba(184,150,106,0.4)"}}>Conforme<br/>RGPD<br/>2024</div>
@@ -231,7 +256,7 @@ function Landing({ onStart }) {
       </section>
 
       {/* TRUST BAR */}
-      <div style={{background:C.ink,color:C.cream,padding:"1rem 4rem",display:"flex",justifyContent:"center",gap:"4rem"}}>
+      <div className="trust-bar-inner" style={{background:C.ink,color:C.cream,padding:"1rem 4rem",display:"flex",justifyContent:"center",gap:"4rem"}}>
         {[["🔒","Paiement sécurisé Stripe"],["⚡","Document livré en 30 secondes"],["🌍","6 langues européennes"],["✦","Conforme directive 2011/83/UE"]].map(([icon,text])=>(
           <div key={text} style={{display:"flex",alignItems:"center",gap:"0.6rem",fontSize:"0.82rem",letterSpacing:"0.08em",opacity:0.8}}>
             <span>{icon}</span><span>{text}</span>
@@ -241,7 +266,7 @@ function Landing({ onStart }) {
 
       {/* PROBLEM */}
       <section style={{background:C.creamDark,borderTop:`1px solid rgba(26,20,16,0.1)`,borderBottom:`1px solid rgba(26,20,16,0.1)`,padding:"7rem 4rem"}}>
-        <div style={{maxWidth:1100,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6rem",alignItems:"center"}}>
+        <div className="problem-inner" style={{maxWidth:1100,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:"6rem",alignItems:"center"}}>
           <div>
             <div className="reveal" style={{fontSize:"0.75rem",letterSpacing:"0.25em",textTransform:"uppercase",color:C.gold,display:"flex",alignItems:"center",gap:"1rem",marginBottom:"1.5rem"}}>Le problème<span style={{width:40,height:1,background:C.gold,display:"block"}}/></div>
             <h2 className="reveal d1" style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(2rem,3vw,3rem)",fontWeight:700,lineHeight:1.1,letterSpacing:"-0.02em",marginBottom:"2rem"}}>Ce que les e-commerçants <em style={{fontStyle:"italic",color:C.gold}}>évitent</em> jusqu'au dernier moment</h2>
@@ -261,7 +286,7 @@ function Landing({ onStart }) {
               ))}
             </div>
           </div>
-          <div className="reveal" style={{padding:"3rem",border:`2px solid ${C.ink}`,position:"relative"}}>
+          <div className="reveal" className="problem-quote" style={{padding:"3rem",border:`2px solid ${C.ink}`,position:"relative"}}>
             <span style={{position:"absolute",top:"-1.5rem",left:"2rem",fontFamily:"'Playfair Display',serif",fontSize:"6rem",color:C.gold,lineHeight:1,background:C.creamDark,padding:"0 0.5rem"}}>"</span>
             <p style={{fontFamily:"'Playfair Display',serif",fontSize:"1.3rem",fontStyle:"italic",lineHeight:1.6,marginBottom:"2rem",color:C.ink}}>"J'ai lancé ma boutique Shopify sans CGV pendant 8 mois. Un client m'a menacé d'une plainte. Ça m'aurait coûté une fortune si j'avais attendu encore."</p>
             <div style={{fontSize:"0.85rem",color:C.inkLight}}>
@@ -279,8 +304,8 @@ function Landing({ onStart }) {
             <div className="reveal" style={{fontSize:"0.75rem",letterSpacing:"0.25em",textTransform:"uppercase",color:C.gold,display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem",marginBottom:"1.5rem"}}>Comment ça marche<span style={{width:40,height:1,background:C.gold,display:"block"}}/></div>
             <h2 className="reveal d1" style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(2rem,3vw,3.5rem)",fontWeight:700,lineHeight:1.1,letterSpacing:"-0.02em"}}>Trois étapes, <em style={{fontStyle:"italic",color:C.gold}}>c'est tout.</em></h2>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:0,position:"relative"}}>
-            <div style={{position:"absolute",top:"2.5rem",left:"calc(16.66% + 1rem)",right:"calc(16.66% + 1rem)",height:1,backgroundImage:`repeating-linear-gradient(90deg,${C.gold} 0,${C.gold} 6px,transparent 6px,transparent 14px)`}}/>
+          <div className="steps-grid" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:0,position:"relative"}}>
+            <div className="steps-line" style={{position:"absolute",top:"2.5rem",left:"calc(16.66% + 1rem)",right:"calc(16.66% + 1rem)",height:1,backgroundImage:`repeating-linear-gradient(90deg,${C.gold} 0,${C.gold} 6px,transparent 6px,transparent 14px)`}}/>
             {[["1","Remplissez le formulaire","15 questions sur votre activité, vos produits, votre politique de livraison et retours. Moins de 3 minutes."],
               ["2","Payez 9 €","Paiement sécurisé par carte via Stripe. Un paiement unique, aucun abonnement caché."],
               ["3","Téléchargez votre document","Vos CGV personnalisées générées instantanément. Copiez sur votre site ou téléchargez en PDF."]
@@ -302,7 +327,7 @@ function Landing({ onStart }) {
             <div className="reveal" style={{fontSize:"0.75rem",letterSpacing:"0.25em",textTransform:"uppercase",color:C.gold,display:"flex",alignItems:"center",justifyContent:"center",gap:"1rem",marginBottom:"1.5rem"}}>Témoignages<span style={{width:40,height:1,background:C.gold,display:"block"}}/></div>
             <h2 className="reveal d1" style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(2rem,3vw,3rem)",fontWeight:700,lineHeight:1.1,letterSpacing:"-0.02em"}}>Ce qu'en disent <em style={{fontStyle:"italic",color:C.gold}}>nos clients</em></h2>
           </div>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"2rem"}}>
+          <div className="testi-grid" style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"2rem"}}>
             {[
               ["★★★★★","Impeccable. J'ai rempli le formulaire en 4 minutes, les CGV étaient prêtes immédiatement. Bien mieux que ce que j'avais trouvé gratuitement.","Thomas B.","Fondateur, SaaS B2B · Paris"],
               ["★★★★★","Enfin un outil sérieux pour les indépendants. Les CGV sont rédigées en français juridique propre, ça inspire confiance à mes clients.","Sophie L.","Créatrice, boutique mode · Lyon"],
@@ -323,7 +348,7 @@ function Landing({ onStart }) {
 
       {/* PRICING */}
       <section id="tarif" style={{background:C.ink,color:C.cream,padding:"7rem 4rem"}}>
-        <div style={{maxWidth:900,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:"4rem",alignItems:"center"}}>
+        <div className="pricing-inner" style={{maxWidth:900,margin:"0 auto",display:"grid",gridTemplateColumns:"1fr 1fr",gap:"4rem",alignItems:"center"}}>
           <div>
             <div className="reveal" style={{fontSize:"0.75rem",letterSpacing:"0.25em",textTransform:"uppercase",color:C.goldLight,display:"flex",alignItems:"center",gap:"1rem",marginBottom:"1.5rem"}}>Tarif<span style={{width:40,height:1,background:C.goldLight,display:"block"}}/></div>
             <h2 className="reveal d1" style={{fontFamily:"'Playfair Display',serif",fontSize:"clamp(2rem,3vw,3.5rem)",fontWeight:700,lineHeight:1.1,letterSpacing:"-0.02em",marginBottom:"1.5rem"}}>Simple,<br/><em style={{fontStyle:"italic",color:C.goldLight}}>transparent.</em></h2>
@@ -382,7 +407,7 @@ function Landing({ onStart }) {
       </section>
 
       {/* FOOTER */}
-      <footer style={{background:C.ink,color:"rgba(245,240,232,0.5)",padding:"3rem 4rem",display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:"0.82rem",flexWrap:"wrap",gap:"1rem"}}>
+      <footer style={{background:C.ink,color:"rgba(245,240,232,0.5)",padding:"3rem 4rem",display:"flex",justifyContent:"space-between",alignItems:"center",fontSize:"0.82rem",flexWrap:"wrap",gap:"1rem"}} className="footer-inner">
         <span style={{fontFamily:"'Playfair Display',serif",fontSize:"1.2rem",fontWeight:900,color:C.cream}}>Lex<span style={{color:C.goldLight}}>Gen</span></span>
         <span>© 2026 LexGen. Tous droits réservés.</span>
         <div style={{display:"flex",gap:"2rem"}}>
