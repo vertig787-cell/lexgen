@@ -33,61 +33,97 @@ const STEPS = [
   ]},
 ];
 
-const MOCK_CGV = `#  CONDITIONS GÉNÉRALES DE VENTE
+const MOCK_CGV = `# CONDITIONS GÉNÉRALES DE VENTE
 
-**{companyName}** – En vigueur au {date}
-
----
-
-## ARTICLE 1 – CHAMP D'APPLICATION
-
-Les présentes CGV s'appliquent à l'ensemble des ventes conclues par **{companyName}** ({legalForm}, SIRET {siret}), dont le siège social est situé au {address}.
+**{companyName}** – {legalForm} – SIRET {siret}
+Siège social : {address} | Contact : {email}
+*En vigueur au {date}*
 
 ---
 
-## ARTICLE 2 – PRIX
+## ARTICLE 1 – CHAMP D'APPLICATION ET OPPOSABILITÉ
 
-Les prix sont indiqués en euros TTC. **{companyName}** se réserve le droit de modifier ses prix à tout moment.
+Les présentes Conditions Générales de Vente (CGV) s'appliquent à toutes les ventes conclues par **{companyName}** ({legalForm}, immatriculée au RCS sous le numéro SIRET {siret}), dont le siège social est situé au {address}, ci-après désignée « le Vendeur ».
+
+Toute commande implique l'acceptation pleine et entière des présentes CGV. Le Vendeur se réserve le droit de modifier ses CGV à tout moment ; les CGV applicables sont celles en vigueur à la date de la commande.
 
 ---
 
-## ARTICLE 3 – COMMANDES
+## ARTICLE 2 – PRODUITS ET PRIX
 
-La vente sera considérée définitive après confirmation par email de **{companyName}**.
+Les produits et services proposés sont ceux décrits sur le site au moment de la consultation. Les prix sont indiqués en {currency} toutes taxes comprises (TTC). **{companyName}** se réserve le droit de modifier ses prix à tout moment, étant entendu que le prix applicable est celui en vigueur au moment de la validation de la commande.
+
+En cas d'erreur manifeste de prix, **{companyName}** se réserve le droit d'annuler la commande après en avoir informé le Client.
+
+---
+
+## ARTICLE 3 – COMMANDES ET FORMATION DU CONTRAT
+
+La commande est validée après confirmation par email de **{companyName}**. Le Vendeur se réserve le droit de refuser toute commande pour motif légitime, notamment en cas de litige antérieur ou de suspicion de fraude.
+
+Le Client s'engage à fournir des informations exactes lors de sa commande. **{companyName}** ne pourra être tenu responsable des conséquences d'informations erronées transmises par le Client.
 
 ---
 
 ## ARTICLE 4 – CONDITIONS DE PAIEMENT
 
-Paiement comptant par : {paymentMethods}.
+Le paiement est exigible comptant à la commande. Les moyens de paiement acceptés sont : **{paymentMethods}**, via le prestataire de paiement sécurisé **{paymentProcessor}**.
+
+Les données bancaires du Client sont traitées exclusivement par le prestataire de paiement et ne sont jamais stockées par **{companyName}**. En cas de paiement frauduleux, le Vendeur se réserve le droit de poursuites judiciaires.
 
 ---
 
-## ARTICLE 5 – LIVRAISONS
+## ARTICLE 5 – LIVRAISON
 
-Délai de livraison : {deliveryDelay}. Frais de livraison : {shippingCost}.
+Les commandes sont livrées aux pays suivants : {countries}. Le délai de livraison moyen est de **{deliveryDelay}** à compter de la confirmation de commande. Les frais de livraison sont : **{shippingCost}**.
 
----
-
-## ARTICLE 6 – DROIT DE RÉTRACTATION
-
-Le Client dispose de {returnPolicy} à compter de la réception. Frais de retour : {returnCost}.
+En cas de retard de livraison imputable à un transporteur tiers, **{companyName}** ne pourra être tenu responsable. Le Client est invité à contacter le service client à {email} pour tout signalement.
 
 ---
 
-## ARTICLE 7 – PROTECTION DES DONNÉES (RGPD)
+## ARTICLE 6 – DROIT DE RÉTRACTATION (Directive 2011/83/UE)
 
-Données hébergées {dataProcessor}. Contact : {email}.
+Conformément à l'article L.221-18 du Code de la consommation et à la directive européenne 2011/83/UE, le Client dispose d'un délai de **{returnPolicy}** à compter de la réception du bien pour exercer son droit de rétractation, sans avoir à justifier de motifs.
 
----
+Pour exercer ce droit, le Client doit notifier sa décision par email à {email}. Les frais de retour sont à la charge de : **{returnCost}**. Le remboursement interviendra dans les 14 jours suivant la réception du retour.
 
-## ARTICLE 8 – DROIT APPLICABLE
-
-Les présentes CGV sont régies par le droit français.
+*Exception : le droit de rétractation ne s'applique pas aux biens numériques dont l'exécution a commencé avec l'accord du consommateur avant la fin du délai de rétractation.*
 
 ---
 
-*Document généré le {date} – À titre informatif. Non substituable à un conseil juridique professionnel.*`;
+## ARTICLE 7 – GARANTIES LÉGALES
+
+**{companyName}** est tenu aux garanties légales de conformité (articles L.217-4 et suivants du Code de la consommation) et contre les vices cachés (articles 1641 et suivants du Code civil). En cas de non-conformité d'un produit vendu, le Client peut le retourner pour échange ou remboursement.
+
+---
+
+## ARTICLE 8 – RESPONSABILITÉ
+
+La responsabilité de **{companyName}** ne pourra être engagée en cas de force majeure, de fait d'un tiers ou de négligence du Client. En tout état de cause, la responsabilité du Vendeur est limitée au montant de la commande concernée.
+
+---
+
+## ARTICLE 9 – PROTECTION DES DONNÉES PERSONNELLES (RGPD)
+
+Conformément au Règlement Général sur la Protection des Données (RGPD – UE 2016/679), les données personnelles collectées sont utilisées exclusivement pour le traitement des commandes. Les données sont hébergées **{dataProcessor}**.
+
+Le Client dispose d'un droit d'accès, de rectification, de suppression et de portabilité de ses données en contactant : **{email}**. Les données ne sont jamais cédées à des tiers à des fins commerciales.
+
+---
+
+## ARTICLE 10 – PROPRIÉTÉ INTELLECTUELLE
+
+L'ensemble des contenus présents sur le site de **{companyName}** (textes, images, logos) sont protégés par le droit de la propriété intellectuelle. Toute reproduction sans autorisation est interdite.
+
+---
+
+## ARTICLE 11 – RÈGLEMENT DES LITIGES ET DROIT APPLICABLE
+
+Les présentes CGV sont soumises au droit français. En cas de litige, le Client peut recourir à la médiation via la plateforme européenne de règlement en ligne des litiges : **https://ec.europa.eu/consumers/odr**. À défaut de résolution amiable, les tribunaux français seront seuls compétents.
+
+---
+
+*Document généré le {date} par LexGen – À titre informatif. Ce document ne se substitue pas à un conseil juridique professionnel. Pour toute activité à risque élevé, nous recommandons une validation par un avocat spécialisé.*`;
 
 const globalCss = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,400&family=EB+Garamond:wght@400;500&display=swap');
@@ -252,12 +288,12 @@ const globalCss = `
   /* RESULT */
   .result-page { position: fixed; inset: 0; background: #f5f0e8; color: #1a1410; z-index: 200; overflow-y: auto; font-family: 'EB Garamond', Georgia, serif; }
   .result-header { padding: 1.5rem 1.25rem; border-bottom: 1px solid rgba(26,20,16,.12); display: flex; flex-wrap: wrap; gap: 1rem; justify-content: space-between; align-items: flex-start; }
-  .result-badge { font-size: .72rem; color: #b8966a; letter-spacing: .15em; text-transform: uppercase; margin-bottom: .4rem; }
+  .result-badge { font-size: .72rem; color: #2e7d32; letter-spacing: .15em; text-transform: uppercase; margin-bottom: .4rem; background: #e8f5e9; display: inline-block; padding: .2rem .6rem; border-radius: 3px; }
   .result-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; color: #1a1410; }
   .result-actions { display: flex; gap: .75rem; flex-wrap: wrap; }
   .result-actions button { padding: .65rem 1.25rem; font-family: inherit; font-size: .88rem; cursor: pointer; border-radius: 4px; }
   .result-body { max-width: 780px; margin: 0 auto; padding: 1.5rem 1.25rem 4rem; }
-  .result-doc { background: white; border: 1px solid rgba(26,20,16,.12); border-radius: 4px; padding: 1.5rem; line-height: 1.8; font-size: .9rem; max-height: 65vh; overflow-y: auto; color: #1a1410; }
+  .result-doc { background: #fff; border: 1px solid rgba(26,20,16,.15); border-radius: 4px; padding: 2rem 2.5rem; line-height: 1.9; font-size: 1rem; max-height: 65vh; overflow-y: auto; color: #1a1410 !important; box-shadow: 0 2px 12px rgba(26,20,16,.06); }
   .result-disclaimer { margin-top: 1.25rem; padding: 1rem; background: #fdf6e3; border: 1px solid #e6d5a0; font-size: .78rem; color: #8a6914; border-radius: 4px; }
 
   /* GENERATING */
@@ -546,10 +582,10 @@ CGV complètes articles numérotés conformes directive 2011/83/UE et RGPD. Term
       <div className="result-body">
         <div className="result-doc">
           {result.split('\n').map((line,i)=>{
-            if(line.startsWith('# ')) return <h1 key={i} style={{fontFamily:"'Playfair Display',serif",fontSize:"1.4rem",color:"#d4b896",borderBottom:"1px solid #2a2a3a",paddingBottom:".5rem",marginBottom:"1.25rem"}}>{line.replace('# ','')}</h1>;
-            if(line.startsWith('## ')) return <h2 key={i} style={{fontFamily:"'Playfair Display',serif",fontSize:"1rem",color:"#e8e4dc",marginTop:"1.75rem",marginBottom:".4rem",fontWeight:700}}>{line.replace('## ','')}</h2>;
-            if(line==='---') return <hr key={i} style={{border:"none",borderTop:"1px solid #2a2a3a",margin:"1.25rem 0"}}/>;
-            return <p key={i} style={{margin:line?"0 0 .4rem":"0.4rem 0",color:line.startsWith('*')?"#888":"#c8c4bc"}} dangerouslySetInnerHTML={{__html:line.replace(/\*\*(.*?)\*\*/g,'<strong style="color:#e8e4dc">$1</strong>')}}/>;
+            if(line.startsWith('# ')) return <h1 key={i} style={{fontFamily:"'Playfair Display',serif",fontSize:"1.5rem",color:"#1a1410",borderBottom:"2px solid #1a1410",paddingBottom:".5rem",marginBottom:"1.5rem",letterSpacing:"-.01em"}}>{line.replace('# ','')}</h1>;
+            if(line.startsWith('## ')) return <h2 key={i} style={{fontFamily:"'Playfair Display',serif",fontSize:"1rem",color:"#1a1410",marginTop:"1.75rem",marginBottom:".4rem",fontWeight:700,textTransform:"uppercase",letterSpacing:".05em"}}>{line.replace('## ','')}</h2>;
+            if(line==='---') return <hr key={i} style={{border:"none",borderTop:"1px solid rgba(26,20,16,.12)",margin:"1.25rem 0"}}/>;
+            return <p key={i} style={{margin:line?"0 0 .6rem":"0.6rem 0",color:line.startsWith('*')?"#555":"#1a1410",lineHeight:1.9,fontSize:"1rem"}} dangerouslySetInnerHTML={{__html:line.replace(/\*\*(.*?)\*\*/g,'<strong style="color:#1a1410;font-weight:700">$1</strong>')}}/>;
           })}
         </div>
         <div className="result-disclaimer">⚠️ Ce document est généré à titre informatif et ne remplace pas un conseil juridique professionnel.</div>
