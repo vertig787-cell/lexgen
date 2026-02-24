@@ -3,7 +3,6 @@ import Stripe from "stripe";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export default async function handler(req, res) {
-  // CORS
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -11,23 +10,17 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const { cardNumber, expMonth, expYear, cvc, companyName } = req.body;
+    const { token, companyName } = req.body;
 
-    // 1. Créer un token de carte
-    const token = await stripe.tokens.create({
-      card: {
-        number: cardNumber,
-        exp_month: expMonth,
-        exp_year: expYear,
-        cvc: cvc,
-      },
-    });
+    if (!token) {
+      return res.status(400).json({ error: "Token de carte manquant." });
+    }
 
-    // 2. Créer et confirmer le paiement
+    // Créer le paiement avec le token Stripe.js (sécurisé)
     const charge = await stripe.charges.create({
       amount: 900, // 9,00 € en centimes
       currency: "eur",
-      source: token.id,
+      source: token,
       description: `CGV LexGen — ${companyName || "Client"}`,
       metadata: { companyName: companyName || "" },
     });

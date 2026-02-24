@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 const STRIPE_KEY = "pk_live_51RxqHVDL6MXKKnhYL9SpgIBrjQjjf3g8hAjHschu7f2Tb19f5xxJfb41PspvGMaQh0XeGEfIXWjqmEif1jL0UqrA00SyQy65Ob";
 
@@ -299,42 +299,52 @@ const globalCss = `
 
 // ── PAYMENT FORM ──────────────────────────────
 function PaymentForm({ onSuccess, onCancel, formData }) {
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry]         = useState("");
-  const [cvc, setCvc]               = useState("");
-  const [cardError, setCardError]   = useState("");
+  const [cardError, setCardError] = useState("");
   const [processing, setProcessing] = useState(false);
+  const [stripeReady, setStripeReady] = useState(false);
+  const cardElementRef = useRef(null);
+  const stripeRef = useRef(null);
+  const elementsRef = useRef(null);
 
-  const fmtCard = v => v.replace(/\D/g,"").slice(0,16).replace(/(.{4})/g,"$1 ").trim();
-  const fmtExp  = v => { const d=v.replace(/\D/g,"").slice(0,4); return d.length>=3?d.slice(0,2)+" / "+d.slice(2):d; };
-  const isValid = cardNumber.replace(/\s/g,"").length===16 && expiry.replace(/\D/g,"").length===4 && cvc.length>=3;
+  useEffect(() => {
+    // Load Stripe.js dynamically
+    if (window.Stripe) { initStripe(); return; }
+    const script = document.createElement("script");
+    script.src = "https://js.stripe.com/v3/";
+    script.onload = initStripe;
+    document.head.appendChild(script);
+  }, []);
+
+  const initStripe = () => {
+    stripeRef.current = window.Stripe("pk_live_51RxqHVDL6MXKKnhYL9SpgIBrjQjjf3g8hAjHschu7f2Tb19f5xxJfb41PspvGMaQh0XeGEfIXWjqmEif1jL0UqrA00SyQy65Ob");
+    elementsRef.current = stripeRef.current.elements();
+    const style = {
+      base: { color: "#e8e4dc", fontFamily: "'EB Garamond', Georgia, serif", fontSize: "16px", "::placeholder": { color: "#555" }, backgroundColor: "#13131a" },
+      invalid: { color: "#e05555" },
+    };
+    cardElementRef.current = elementsRef.current.create("card", { style, hidePostalCode: true });
+    cardElementRef.current.mount("#stripe-card-element");
+    cardElementRef.current.on("ready", () => setStripeReady(true));
+    cardElementRef.current.on("change", e => { setCardError(e.error ? e.error.message : ""); });
+  };
 
   const handlePay = async () => {
+    if (!stripeRef.current || !cardElementRef.current) return;
     setCardError(""); setProcessing(true);
-    const num=cardNumber.replace(/\s/g,""), exp=expiry.replace(/\D/g,"");
-    const month=parseInt(exp.slice(0,2)), year=parseInt("20"+exp.slice(2,4)), now=new Date();
-    if (month<1||month>12) { setCardError("Date d'expiration invalide."); setProcessing(false); return; }
-    if (year<now.getFullYear()||(year===now.getFullYear()&&month<now.getMonth()+1)) { setCardError("Votre carte est expirée."); setProcessing(false); return; }
     try {
+      // 1. Tokeniser la carte côté client via Stripe.js
+      const { token, error } = await stripeRef.current.createToken(cardElementRef.current);
+      if (error) { setCardError(error.message); setProcessing(false); return; }
+
+      // 2. Envoyer le token au backend
       const res = await fetch("/api/payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          cardNumber: num,
-          expMonth: month,
-          expYear: year,
-          cvc: cvc,
-          companyName: formData.companyName || "",
-        }),
+        body: JSON.stringify({ token: token.id, companyName: formData.companyName || "" }),
       });
       const data = await res.json();
-      if (data.success) {
-        setProcessing(false);
-        onSuccess();
-      } else {
-        setCardError(data.error || "Paiement refusé. Vérifiez vos informations.");
-        setProcessing(false);
-      }
+      if (data.success) { setProcessing(false); onSuccess(); }
+      else { setCardError(data.error || "Paiement refusé."); setProcessing(false); }
     } catch(e) {
       setCardError("Erreur réseau. Veuillez réessayer.");
       setProcessing(false);
@@ -365,37 +375,20 @@ function PaymentForm({ onSuccess, onCancel, formData }) {
             <div className="pay-card__price">9,00 €</div>
           </div>
           <div className="pay-card__features">
-            <span>✓ 8+ articles</span>
-            <span>✓ Conforme RGPD</span>
-            <span>✓ Livraison instantanée</span>
+            <span>✓ 8+ articles</span><span>✓ Conforme RGPD</span><span>✓ Livraison instantanée</span>
           </div>
         </div>
         <div className="pay-card">
           <div className="pay-label">Informations de carte</div>
-          <div className="fields">
-            <div>
-              <div className="field__label">Numéro de carte</div>
-              <input className="field__input" type="text" inputMode="numeric" placeholder="1234 5678 9012 3456" value={cardNumber} onChange={e=>setCardNumber(fmtCard(e.target.value))} />
-            </div>
-            <div className="card-row">
-              <div>
-                <div className="field__label">Expiration</div>
-                <input className="field__input" type="text" inputMode="numeric" placeholder="MM / AA" value={expiry} onChange={e=>setExpiry(fmtExp(e.target.value))} />
-              </div>
-              <div>
-                <div className="field__label">CVC</div>
-                <input className="field__input" type="text" inputMode="numeric" placeholder="123" value={cvc} onChange={e=>setCvc(e.target.value.replace(/\D/g,"").slice(0,4))} />
-              </div>
-            </div>
-          </div>
+          <div id="stripe-card-element" style={{padding:".85rem 1rem",background:"#13131a",border:"1px solid #2a2a3a",minHeight:48}}/>
+          {!stripeReady && <div style={{fontSize:".78rem",color:"#555",marginTop:".5rem"}}>Chargement du formulaire sécurisé...</div>}
           {cardError && <div className="field__error" style={{marginTop:".75rem"}}>⚠ {cardError}</div>}
         </div>
-        <button className="btn btn--gold btn--full" onClick={handlePay} disabled={processing||!isValid} style={{opacity:processing||!isValid?.5:1,cursor:processing||!isValid?"default":"pointer",fontSize:"1rem",fontWeight:700,padding:"1rem"}}>
+        <button className="btn btn--gold btn--full" onClick={handlePay} disabled={processing||!stripeReady}
+          style={{opacity:processing||!stripeReady?.5:1,cursor:processing||!stripeReady?"default":"pointer",fontSize:"1rem",fontWeight:700,padding:"1rem"}}>
           {processing ? "⏳ Traitement..." : "💳 Payer 9,00 € et générer mes CGV"}
         </button>
-        <div className="pay-trust">
-          <span>🔒 SSL</span><span>⚡ Stripe</span><span>🛡 Données protégées</span>
-        </div>
+        <div className="pay-trust"><span>🔒 SSL</span><span>⚡ Stripe</span><span>🛡 Données protégées</span></div>
         <div style={{marginTop:"1.5rem",textAlign:"center"}}>
           <button onClick={onCancel} style={{background:"none",border:"none",color:"#555",cursor:"pointer",fontFamily:"inherit",fontSize:".85rem"}}>← Retour au formulaire</button>
         </div>
