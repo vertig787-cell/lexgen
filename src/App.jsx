@@ -504,9 +504,9 @@ CGV complètes articles numérotés conformes directive 2011/83/UE et RGPD. Term
               </>):field.type==="textarea"?(
                 <textarea className="field__input" placeholder={field.placeholder} value={formData[field.key]||""} onChange={e=>handleField(field.key,e.target.value)} rows={3} style={{resize:"vertical"}}/>
               ):field.type==="select"?(
-                <select className="field__input" value={formData[field.key]||""} onChange={e=>handleField(field.key,e.target.value)} style={{color:formData[field.key]?"#e8e4dc":"#555",cursor:"pointer",background:"#13131a"}}>
+                <select className="field__input" value={formData[field.key]||""} onChange={e=>handleField(field.key,e.target.value)} style={{color:formData[field.key]?"#1a1410":"#888",cursor:"pointer",background:"white"}}>
                   <option value="">Sélectionner...</option>
-                  {field.options.map(o=><option key={o} value={o} style={{background:"#13131a"}}>{o}</option>)}
+                  {field.options.map(o=><option key={o} value={o} style={{background:"white",color:"#1a1410"}}>{o}</option>)}
                 </select>
               ):field.type==="multiselect"?(
                 <div className="multiselect">
