@@ -316,7 +316,7 @@ function PaymentForm({ onSuccess, onCancel, formData }) {
   }, []);
 
   const initStripe = () => {
-    stripeRef.current = window.Stripe("pk_test_51RxqHxDiHCfv0XMm4yoGqT4wj4jZlLQZBcmM6LcqF3Y10Vz1fmiA9oRHZ9jnIYg5pLLubYA8QYB4RcnVAvZ9LuTX00bEGPqjod");
+    stripeRef.current = window.Stripe("pk_test_51RxqHVDL6MXKKnhYAK6jadxswsYWAfc2YmKKzyai0Jq3MJJjPk2ogy5VHqQDUnh8yEb5pXG15HLqILfpgzeuUN8N00f9uQ5zxy");
     elementsRef.current = stripeRef.current.elements();
     cardElementRef.current = elementsRef.current.create("card", {
       hidePostalCode: true,
