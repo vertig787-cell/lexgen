@@ -341,20 +341,24 @@ function PaymentForm({ onSuccess, onCancel, formData }) {
       if (data.error) { setCardError(data.error); setProcessing(false); return; }
 
       // 2. Confirmer le paiement avec Stripe.js (gère le 3D Secure automatiquement)
-      const { error, paymentIntent } = await stripeRef.current.confirmCardPayment(
+      const result = await stripeRef.current.confirmCardPayment(
         data.clientSecret,
         { payment_method: { card: cardElementRef.current } }
       );
 
-      if (error) {
-        setCardError(error.message);
+      if (result.error) {
+        setCardError(result.error.message);
         setProcessing(false);
-      } else if (paymentIntent && (paymentIntent.status === "succeeded" || paymentIntent.status === "processing")) {
+      } else if (result.paymentIntent && result.paymentIntent.status === "succeeded") {
         setProcessing(false);
         onSuccess();
+      } else if (result.paymentIntent && result.paymentIntent.status === "requires_action") {
+        // 3DS en cours — Stripe gère la popup automatiquement
+        // On attend que le statut change
+        setCardError("Authentification requise. Veuillez valider dans la popup.");
+        setProcessing(false);
       } else {
-        // Log exact status for debugging
-        setCardError("Statut inattendu: " + (paymentIntent ? paymentIntent.status : "inconnu"));
+        setCardError("Erreur inattendue. Veuillez réessayer.");
         setProcessing(false);
       }
     } catch(e) {

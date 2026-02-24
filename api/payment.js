@@ -12,11 +12,10 @@ export default async function handler(req, res) {
   try {
     const { companyName } = req.body;
 
-    // Créer un PaymentIntent (gère le 3D Secure automatiquement)
     const paymentIntent = await stripe.paymentIntents.create({
       amount: 900,
       currency: "eur",
-      automatic_payment_methods: { enabled: true },
+      payment_method_types: ["card"],
       description: `CGV LexGen — ${companyName || "Client"}`,
       metadata: { companyName: companyName || "" },
     });
