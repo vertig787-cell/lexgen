@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Paiement confirmé — LexGen</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=EB+Garamond:wght@400;500&display=swap');
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:#0a0a0f;color:#e8e4dc;font-family:'EB Garamond',Georgia,serif;min-height:100vh;display:flex;flex-direction:column;}
+    .nav{padding:1rem 1.25rem;border-bottom:1px solid #1e1e2e;display:flex;justify-content:space-between;align-items:center;}
+    .logo{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;color:#e8e4dc;text-decoration:none;}
+    .logo span{color:#d4b896;}
+    .body{max-width:780px;margin:0 auto;padding:2rem 1.25rem 4rem;width:100%;}
+    .header{margin-bottom:1.5rem;}
+    .badge{font-size:.72rem;color:#d4b896;letter-spacing:.15em;text-transform:uppercase;margin-bottom:.4rem;}
+    .title{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;}
+    .actions{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1rem;}
+    .btn{padding:.65rem 1.25rem;font-family:inherit;font-size:.88rem;cursor:pointer;border:none;border-radius:4px;}
+    .btn-copy{background:#d4b896;color:#0a0a0f;font-weight:700;}
+    .btn-new{background:transparent;color:#d4b896;border:1px solid #d4b896 !important;border-radius:4px;}
+    .doc{background:#13131a;border:1px solid #2a2a3a;border-radius:4px;padding:1.5rem;line-height:1.8;font-size:.9rem;max-height:65vh;overflow-y:auto;margin-top:1rem;}
+    .disclaimer{margin-top:1.25rem;padding:1rem;background:#1a1208;border:1px solid #3a2a08;font-size:.78rem;color:#a08050;border-radius:4px;}
+    .loading{text-align:center;padding:4rem 0;}
+    .spin{font-size:2.5rem;animation:spin 2s linear infinite;display:inline-block;margin-bottom:1rem;}
+    @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+    h1.doc-h1{font-family:'Playfair Display',serif;font-size:1.4rem;color:#d4b896;border-bottom:1px solid #2a2a3a;padding-bottom:.5rem;margin-bottom:1.25rem;}
+    h2.doc-h2{font-family:'Playfair Display',serif;font-size:1rem;color:#e8e4dc;margin-top:1.75rem;margin-bottom:.4rem;font-weight:700;}
+    hr.doc-hr{border:none;border-top:1px solid #2a2a3a;margin:1.25rem 0;}
+    p.doc-p{margin:0 0 .4rem;color:#c8c4bc;}
+    p.doc-muted{color:#888;}
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <a href="/" class="logo">Lex<span>Gen</span></a>
+  </nav>
+  <div class="body">
+    <div id="loading" class="loading">
+      <div class="spin">⚙️</div>
+      <div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:.5rem;">Paiement confirmé ✓</div>
+        <div style="color:#888;font-size:.9rem;">Rédaction de vos CGV personnalisées...</div>
+      </div>
+    </div>
+    <div id="result" style="display:none;">
+      <div class="header">
+        <div class="badge">Paiement confirmé · Document généré ✓</div>
+        <div class="title">Vos CGV sont prêtes</div>
+        <div class="actions">
+          <button class="btn btn-copy" onclick="copyDoc()">Copier le texte</button>
+          <a href="/" class="btn btn-new" style="display:inline-block;text-decoration:none;padding:.65rem 1.25rem;">← Nouvelle génération</a>
+        </div>
+      </div>
+      <div class="doc" id="doc-content"></div>
+      <div class="disclaimer">⚠️ Ce document est généré à titre informatif et ne remplace pas un conseil juridique professionnel.</div>
+    </div>
+  </div>
+
+  <script>
+    const MOCK_CGV = `# CONDITIONS GÉNÉRALES DE VENTE\n\n**{companyName}** – En vigueur au {date}\n\n---\n\n## ARTICLE 1 – CHAMP D'APPLICATION\n\nLes présentes CGV s'appliquent à l'ensemble des ventes conclues par **{companyName}** ({legalForm}, SIRET {siret}), dont le siège social est situé au {address}.\n\n---\n\n## ARTICLE 2 – PRIX\n\nLes prix sont indiqués en euros TTC. **{companyName}** se réserve le droit de modifier ses prix à tout moment.\n\n---\n\n## ARTICLE 3 – COMMANDES\n\nLa vente sera considérée définitive après confirmation par email de **{companyName}**.\n\n---\n\n## ARTICLE 4 – CONDITIONS DE PAIEMENT\n\nPaiement comptant par : {paymentMethods}.\n\n---\n\n## ARTICLE 5 – LIVRAISONS\n\nDélai de livraison : {deliveryDelay}. Frais de livraison : {shippingCost}.\n\n---\n\n## ARTICLE 6 – DROIT DE RÉTRACTATION\n\nLe Client dispose de {returnPolicy} à compter de la réception. Frais de retour : {returnCost}.\n\n---\n\n## ARTICLE 7 – PROTECTION DES DONNÉES (RGPD)\n\nDonnées hébergées {dataProcessor}. Contact : {email}.\n\n---\n\n## ARTICLE 8 – DROIT APPLICABLE\n\nLes présentes CGV sont régies par le droit français.\n\n---\n\n*Document généré le {date} – À titre informatif.*`;
+
+    let docText = "";
+
+    function buildFallback(formData, date) {
+      let cgv = MOCK_CGV;
+      const r = {
+        companyName: formData.companyName || "Votre Entreprise",
+        legalForm: formData.legalForm || "",
+        siret: formData.siret || "XXX",
+        address: formData.address || "",
+        email: formData.email || "",
+        paymentMethods: formData.paymentMethods || "",
+        deliveryDelay: formData.deliveryDelay || "",
+        shippingCost: formData.shippingCost || "",
+        returnPolicy: formData.returnPolicy || "14 jours",
+        returnCost: formData.returnCost || "",
+        dataProcessor: formData.dataProcessor || "en Europe",
+        date
+      };
+      Object.entries(r).forEach(([k,v]) => { cgv = cgv.replaceAll(`{${k}}`, v); });
+      return cgv;
+    }
+
+    function renderDoc(text) {
+      docText = text;
+      const container = document.getElementById("doc-content");
+      container.innerHTML = "";
+      text.split("\n").forEach(line => {
+        if (line.startsWith("# ")) {
+          const h = document.createElement("h1");
+          h.className = "doc-h1";
+          h.textContent = line.replace("# ", "");
+          container.appendChild(h);
+        } else if (line.startsWith("## ")) {
+          const h = document.createElement("h2");
+          h.className = "doc-h2";
+          h.textContent = line.replace("## ", "");
+          container.appendChild(h);
+        } else if (line === "---") {
+          container.appendChild(document.createElement("hr")).className = "doc-hr";
+        } else {
+          const p = document.createElement("p");
+          p.className = line.startsWith("*") ? "doc-muted" : "doc-p";
+          p.innerHTML = line.replace(/\*\*(.*?)\*\*/g, '<strong style="color:#e8e4dc">$1</strong>');
+          container.appendChild(p);
+        }
+      });
+      document.getElementById("loading").style.display = "none";
+      document.getElementById("result").style.display = "block";
+    }
+
+    function copyDoc() {
+      navigator.clipboard.writeText(docText);
+      const btn = document.querySelector(".btn-copy");
+      btn.textContent = "✓ Copié !";
+      btn.style.background = "#2d5a27";
+      btn.style.color = "#e8e4dc";
+      setTimeout(() => { btn.textContent = "Copier le texte"; btn.style.background = "#d4b896"; btn.style.color = "#0a0a0f"; }, 2000);
+    }
+
+    async function generateCGV(formData) {
+      const date = new Date().toLocaleDateString("fr-FR");
+      try {
+        const prompt = `Tu es un expert juridique. Génère des CGV professionnelles complètes en ${formData.outputLanguage||"Français"} pour : Entreprise: ${formData.companyName} (${formData.legalForm}, SIRET ${formData.siret}), Adresse: ${formData.address}, Email: ${formData.email}, Produits: ${formData.productType} – ${formData.productDescription}, Pays: ${formData.countries}, Devise: ${formData.currency}, Livraison: ${formData.deliveryDelay} frais ${formData.shippingCost}, Retours: ${formData.returnPolicy} frais ${formData.returnCost}, Paiement: ${formData.paymentMethods} via ${formData.paymentProcessor}, Données: ${formData.dataProcessor}. CGV complètes articles numérotés conformes directive 2011/83/UE et RGPD. Terminer par "Document généré le ${date} – À titre informatif."`;
+        const res = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, messages: [{ role: "user", content: prompt }] })
+        });
+        const data = await res.json();
+        const text = data.content?.map(b => b.text || "").join("\n");
+        renderDoc(text || buildFallback(formData, date));
+      } catch {
+        renderDoc(buildFallback(formData, date));
+      }
+    }
+
+    // Récupérer les données du formulaire depuis sessionStorage
+    const raw = sessionStorage.getItem("lexgen_formdata");
+    if (raw) {
+      sessionStorage.removeItem("lexgen_formdata");
+      generateCGV(JSON.parse(raw));
+    } else {
+      // Pas de données — rediriger vers l'accueil
+      window.location.href = "/";
+    }
+  </script>
+</body>
+</html>
