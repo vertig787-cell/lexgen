@@ -33,7 +33,7 @@ const STEPS = [
   ]},
 ];
 
-const MOCK_CGV = `# CONDITIONS GÉNÉRALES DE VENTE
+const MOCK_CGV = `#  CONDITIONS GÉNÉRALES DE VENTE
 
 **{companyName}** – En vigueur au {date}
 
