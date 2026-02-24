@@ -336,12 +336,13 @@ const globalCss = `
 
 // ── PAYMENT FORM ──────────────────────────────
 function PaymentForm({ onSuccess, onCancel, formData }) {
-  const [cardError, setCardError] = useState("");
+  const [method, setMethod]         = useState("card"); // "card" | "paypal"
+  const [cardError, setCardError]   = useState("");
   const [processing, setProcessing] = useState(false);
   const [stripeReady, setStripeReady] = useState(false);
   const cardElementRef = useRef(null);
-  const stripeRef = useRef(null);
-  const elementsRef = useRef(null);
+  const stripeRef      = useRef(null);
+  const elementsRef    = useRef(null);
 
   useEffect(() => {
     if (window.Stripe) { initStripe(); return; }
@@ -357,14 +358,7 @@ function PaymentForm({ onSuccess, onCancel, formData }) {
     cardElementRef.current = elementsRef.current.create("card", {
       hidePostalCode: true,
       style: {
-        base: {
-          color: "#1a1410",
-          fontFamily: "'EB Garamond', Georgia, serif",
-          fontSize: "16px",
-          fontSmoothing: "antialiased",
-          "::placeholder": { color: "#aaa" },
-          backgroundColor: "white",
-        },
+        base: { color: "#1a1410", fontFamily: "'EB Garamond', Georgia, serif", fontSize: "16px", "::placeholder": { color: "#aaa" } },
         invalid: { color: "#c0392b" },
       },
     });
@@ -373,50 +367,49 @@ function PaymentForm({ onSuccess, onCancel, formData }) {
     cardElementRef.current.on("change", e => setCardError(e.error ? e.error.message : ""));
   };
 
-  const handlePay = async () => {
+  const handleCard = async () => {
     if (!stripeRef.current || !cardElementRef.current) return;
     setCardError(""); setProcessing(true);
     try {
-      // 1. Créer un PaymentMethod sécurisé via Stripe.js
-      const { paymentMethod, error: pmError } = await stripeRef.current.createPaymentMethod({
-        type: "card",
-        card: cardElementRef.current,
-      });
+      const { paymentMethod, error: pmError } = await stripeRef.current.createPaymentMethod({ type: "card", card: cardElementRef.current });
       if (pmError) { setCardError(pmError.message); setProcessing(false); return; }
-
-      // 2. Envoyer le PaymentMethod ID au backend
       const res = await fetch("/api/payment", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          paymentMethodId: paymentMethod.id,
-          companyName: formData.companyName || "",
-        }),
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ paymentMethodId: paymentMethod.id, companyName: formData.companyName || "" }),
       });
       const data = await res.json();
       if (data.error) { setCardError(data.error); setProcessing(false); return; }
-
-      // 3. Confirmer le paiement (gère 3DS automatiquement)
       const { error: confirmError, paymentIntent } = await stripeRef.current.confirmCardPayment(
-        data.clientSecret,
-        { payment_method: paymentMethod.id }
+        data.clientSecret, { payment_method: paymentMethod.id }
       );
-
-      if (confirmError) {
-        setCardError(confirmError.message);
-        setProcessing(false);
-      } else if (paymentIntent.status === "succeeded") {
-        setProcessing(false);
-        onSuccess();
-      } else {
-        setCardError("Paiement non finalisé. Statut : " + paymentIntent.status);
-        setProcessing(false);
-      }
-    } catch(e) {
-      setCardError("Erreur réseau. Veuillez réessayer.");
-      setProcessing(false);
-    }
+      if (confirmError) { setCardError(confirmError.message); setProcessing(false); }
+      else if (paymentIntent.status === "succeeded") { setProcessing(false); onSuccess(); }
+      else { setCardError("Statut : " + paymentIntent.status); setProcessing(false); }
+    } catch(e) { setCardError("Erreur réseau. Veuillez réessayer."); setProcessing(false); }
   };
+
+  const handlePayPal = async () => {
+    setProcessing(true);
+    try {
+      sessionStorage.setItem("lexgen_formdata", JSON.stringify(formData));
+      const res = await fetch("/api/paypal", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ companyName: formData.companyName || "" }),
+      });
+      const data = await res.json();
+      if (data.approvalUrl) { window.location.href = data.approvalUrl; }
+      else { setCardError(data.error || "Erreur PayPal."); setProcessing(false); }
+    } catch(e) { setCardError("Erreur réseau. Veuillez réessayer."); setProcessing(false); }
+  };
+
+  const tabStyle = (active) => ({
+    flex:1, padding:".75rem", border:"none", cursor:"pointer",
+    fontFamily:"'EB Garamond',serif", fontSize:".95rem", fontWeight: active ? 700 : 400,
+    background: active ? "#1a1410" : "white",
+    color: active ? "#f5f0e8" : "#4a4035",
+    borderBottom: active ? "none" : "1px solid rgba(26,20,16,.15)",
+    transition:"all .2s",
+  });
 
   return (
     <div className="form-page">
@@ -428,13 +421,13 @@ function PaymentForm({ onSuccess, onCancel, formData }) {
         </div>
       </div>
       <div className="form-body">
-        <div style={{textAlign:"center",marginBottom:"2rem"}}>
+        <div style={{textAlign:"center",marginBottom:"1.5rem"}}>
           <div style={{fontSize:"2rem",marginBottom:".5rem"}}>🔒</div>
           <h2 className="form-title" style={{textAlign:"center"}}>Paiement sécurisé</h2>
           <p style={{color:"#4a4035",fontSize:".9rem"}}>Vos CGV personnalisées en quelques secondes</p>
         </div>
 
-        {/* Récap commande */}
+        {/* Récap */}
         <div className="pay-card">
           <div className="pay-card__header">
             <div>
@@ -444,49 +437,55 @@ function PaymentForm({ onSuccess, onCancel, formData }) {
             <div className="pay-card__price">9,00 €</div>
           </div>
           <div className="pay-card__features">
-            <span>✓ 8+ articles</span><span>✓ Conforme RGPD</span><span>✓ Livraison instantanée</span>
+            <span>✓ 11 articles</span><span>✓ Conforme RGPD</span><span>✓ Livraison instantanée</span>
           </div>
         </div>
 
-        {/* Formulaire carte */}
-        <div className="pay-card">
-          <div className="pay-label">Informations de carte</div>
-          <div id="stripe-card-element" style={{
-            padding:".875rem 1rem",
-            background:"white",
-            border:"1px solid rgba(26,20,16,.2)",
-            minHeight:48,
-            transition:"border-color .2s"
-          }}/>
-          {!stripeReady && <div style={{fontSize:".78rem",color:"#888",marginTop:".5rem"}}>Chargement...</div>}
-          {cardError && <div className="field__error" style={{marginTop:".75rem"}}>⚠ {cardError}</div>}
-          <div style={{marginTop:"1rem",fontSize:".75rem",color:"#888",display:"flex",alignItems:"center",gap:".4rem"}}>
-            🔒 Sécurisé par Stripe — vos données ne transitent jamais par nos serveurs
-          </div>
+        {/* Tabs méthode */}
+        <div style={{display:"flex",border:"1px solid rgba(26,20,16,.15)",borderRadius:4,overflow:"hidden",marginBottom:"1rem"}}>
+          <button style={tabStyle(method==="card")} onClick={()=>setMethod("card")}>💳 Carte bancaire</button>
+          <button style={tabStyle(method==="paypal")} onClick={()=>setMethod("paypal")}>🅿 PayPal</button>
         </div>
+
+        {/* Carte */}
+        {method==="card" && (
+          <div className="pay-card">
+            <div className="pay-label">Informations de carte</div>
+            <div id="stripe-card-element" style={{padding:".875rem 1rem",background:"white",border:"1px solid rgba(26,20,16,.2)",minHeight:48}}/>
+            {!stripeReady && <div style={{fontSize:".78rem",color:"#888",marginTop:".5rem"}}>Chargement...</div>}
+            {cardError && <div className="field__error" style={{marginTop:".75rem"}}>⚠ {cardError}</div>}
+            <div style={{marginTop:".75rem",fontSize:".75rem",color:"#888"}}>🔒 Vos données ne transitent jamais par nos serveurs</div>
+          </div>
+        )}
+
+        {/* PayPal */}
+        {method==="paypal" && (
+          <div className="pay-card" style={{textAlign:"center",padding:"2rem"}}>
+            <div style={{fontSize:"2.5rem",marginBottom:"1rem"}}>🅿</div>
+            <p style={{color:"#4a4035",fontSize:".95rem",marginBottom:"1rem",lineHeight:1.6}}>
+              Vous serez redirigé vers PayPal pour finaliser votre paiement en toute sécurité.
+            </p>
+            <div style={{fontSize:".78rem",color:"#888"}}>🔒 Paiement sécurisé via PayPal</div>
+          </div>
+        )}
 
         <button
-          onClick={handlePay}
-          disabled={processing || !stripeReady}
+          onClick={method==="card" ? handleCard : handlePayPal}
+          disabled={processing || (method==="card" && !stripeReady)}
           style={{
-            width:"100%",padding:"1rem",
-            background:processing||!stripeReady?"rgba(26,20,16,.1)":"#1a1410",
-            color:processing||!stripeReady?"rgba(26,20,16,.3)":"#f5f0e8",
-            border:"none",cursor:processing||!stripeReady?"default":"pointer",
-            fontFamily:"'EB Garamond',serif",fontSize:"1rem",fontWeight:700,
-            transition:"background .2s",marginBottom:".75rem"
+            width:"100%", padding:"1rem",
+            background: processing || (method==="card" && !stripeReady) ? "rgba(26,20,16,.1)" : "#1a1410",
+            color: processing || (method==="card" && !stripeReady) ? "rgba(26,20,16,.3)" : "#f5f0e8",
+            border:"none", cursor: processing ? "default" : "pointer",
+            fontFamily:"'EB Garamond',serif", fontSize:"1rem", fontWeight:700,
+            transition:"background .2s", marginBottom:".75rem",
           }}>
-          {processing ? "⏳ Traitement en cours..." : "Payer 9,00 € et générer mes CGV"}
+          {processing ? "⏳ Traitement en cours..." : method==="card" ? "Payer 9,00 € par carte" : "Payer 9,00 € via PayPal →"}
         </button>
 
-        <div className="pay-trust">
-          <span>🔒 SSL 256-bit</span><span>⚡ Stripe</span><span>🛡 PCI DSS</span>
-        </div>
-
+        <div className="pay-trust"><span>🔒 SSL</span><span>⚡ Stripe</span><span>🅿 PayPal</span><span>🛡 PCI DSS</span></div>
         <div style={{marginTop:"1.5rem",textAlign:"center"}}>
-          <button onClick={onCancel} style={{background:"none",border:"none",color:"#888",cursor:"pointer",fontFamily:"inherit",fontSize:".85rem"}}>
-            ← Retour au formulaire
-          </button>
+          <button onClick={onCancel} style={{background:"none",border:"none",color:"#888",cursor:"pointer",fontFamily:"inherit",fontSize:".85rem"}}>← Retour au formulaire</button>
         </div>
       </div>
     </div>
