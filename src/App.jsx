@@ -307,7 +307,6 @@ function PaymentForm({ onSuccess, onCancel, formData }) {
   const elementsRef = useRef(null);
 
   useEffect(() => {
-    // Load Stripe.js dynamically
     if (window.Stripe) { initStripe(); return; }
     const script = document.createElement("script");
     script.src = "https://js.stripe.com/v3/";
@@ -325,26 +324,35 @@ function PaymentForm({ onSuccess, onCancel, formData }) {
     cardElementRef.current = elementsRef.current.create("card", { style, hidePostalCode: true });
     cardElementRef.current.mount("#stripe-card-element");
     cardElementRef.current.on("ready", () => setStripeReady(true));
-    cardElementRef.current.on("change", e => { setCardError(e.error ? e.error.message : ""); });
+    cardElementRef.current.on("change", e => setCardError(e.error ? e.error.message : ""));
   };
 
   const handlePay = async () => {
     if (!stripeRef.current || !cardElementRef.current) return;
     setCardError(""); setProcessing(true);
     try {
-      // 1. Tokeniser la carte côté client via Stripe.js
-      const { token, error } = await stripeRef.current.createToken(cardElementRef.current);
-      if (error) { setCardError(error.message); setProcessing(false); return; }
-
-      // 2. Envoyer le token au backend
+      // 1. Demander un PaymentIntent au backend
       const res = await fetch("/api/payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: token.id, companyName: formData.companyName || "" }),
+        body: JSON.stringify({ companyName: formData.companyName || "" }),
       });
       const data = await res.json();
-      if (data.success) { setProcessing(false); onSuccess(); }
-      else { setCardError(data.error || "Paiement refusé."); setProcessing(false); }
+      if (data.error) { setCardError(data.error); setProcessing(false); return; }
+
+      // 2. Confirmer le paiement avec Stripe.js (gère le 3D Secure automatiquement)
+      const { error, paymentIntent } = await stripeRef.current.confirmCardPayment(
+        data.clientSecret,
+        { payment_method: { card: cardElementRef.current } }
+      );
+
+      if (error) {
+        setCardError(error.message);
+        setProcessing(false);
+      } else if (paymentIntent.status === "succeeded") {
+        setProcessing(false);
+        onSuccess();
+      }
     } catch(e) {
       setCardError("Erreur réseau. Veuillez réessayer.");
       setProcessing(false);
@@ -385,7 +393,7 @@ function PaymentForm({ onSuccess, onCancel, formData }) {
           {cardError && <div className="field__error" style={{marginTop:".75rem"}}>⚠ {cardError}</div>}
         </div>
         <button className="btn btn--gold btn--full" onClick={handlePay} disabled={processing||!stripeReady}
-          style={{opacity:processing||!stripeReady?.5:1,cursor:processing||!stripeReady?"default":"pointer",fontSize:"1rem",fontWeight:700,padding:"1rem"}}>
+          style={{opacity:processing||!stripeReady?0.5:1,cursor:processing||!stripeReady?"default":"pointer",fontSize:"1rem",fontWeight:700,padding:"1rem"}}>
           {processing ? "⏳ Traitement..." : "💳 Payer 9,00 € et générer mes CGV"}
         </button>
         <div className="pay-trust"><span>🔒 SSL</span><span>⚡ Stripe</span><span>🛡 Données protégées</span></div>

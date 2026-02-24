@@ -10,26 +10,18 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const { token, companyName } = req.body;
+    const { companyName } = req.body;
 
-    if (!token) {
-      return res.status(400).json({ error: "Token de carte manquant." });
-    }
-
-    // Créer le paiement avec le token Stripe.js (sécurisé)
-    const charge = await stripe.charges.create({
-      amount: 900, // 9,00 € en centimes
+    // Créer un PaymentIntent (gère le 3D Secure automatiquement)
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: 900,
       currency: "eur",
-      source: token,
+      automatic_payment_methods: { enabled: true },
       description: `CGV LexGen — ${companyName || "Client"}`,
       metadata: { companyName: companyName || "" },
     });
 
-    if (charge.status === "succeeded") {
-      return res.status(200).json({ success: true, chargeId: charge.id });
-    } else {
-      return res.status(400).json({ error: "Paiement non confirmé." });
-    }
+    return res.status(200).json({ clientSecret: paymentIntent.client_secret });
 
   } catch (err) {
     console.error("Stripe error:", err.message);
