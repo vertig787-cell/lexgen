@@ -349,9 +349,13 @@ function PaymentForm({ onSuccess, onCancel, formData }) {
       if (error) {
         setCardError(error.message);
         setProcessing(false);
-      } else if (paymentIntent.status === "succeeded") {
+      } else if (paymentIntent && (paymentIntent.status === "succeeded" || paymentIntent.status === "processing")) {
         setProcessing(false);
         onSuccess();
+      } else {
+        // Log exact status for debugging
+        setCardError("Statut inattendu: " + (paymentIntent ? paymentIntent.status : "inconnu"));
+        setProcessing(false);
       }
     } catch(e) {
       setCardError("Erreur réseau. Veuillez réessayer.");
