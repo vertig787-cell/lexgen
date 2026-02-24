@@ -299,32 +299,85 @@ const globalCss = `
 `;
 
 // ── PAYMENT FORM ──────────────────────────────
-function PaymentForm({ onCancel, formData }) {
+function PaymentForm({ onSuccess, onCancel, formData }) {
+  const [cardError, setCardError] = useState("");
   const [processing, setProcessing] = useState(false);
-  const [error, setError] = useState("");
+  const [stripeReady, setStripeReady] = useState(false);
+  const cardElementRef = useRef(null);
+  const stripeRef = useRef(null);
+  const elementsRef = useRef(null);
+
+  useEffect(() => {
+    if (window.Stripe) { initStripe(); return; }
+    const script = document.createElement("script");
+    script.src = "https://js.stripe.com/v3/";
+    script.onload = initStripe;
+    document.head.appendChild(script);
+  }, []);
+
+  const initStripe = () => {
+    stripeRef.current = window.Stripe("pk_test_51RxqHxDiHCfv0XMm4yoGqT4wj4jZlLQZBcmM6LcqF3Y10Vz1fmiA9oRHZ9jnIYg5pLLubYA8QYB4RcnVAvZ9LuTX00bEGPqjod");
+    elementsRef.current = stripeRef.current.elements();
+    cardElementRef.current = elementsRef.current.create("card", {
+      hidePostalCode: true,
+      style: {
+        base: {
+          color: "#1a1410",
+          fontFamily: "'EB Garamond', Georgia, serif",
+          fontSize: "16px",
+          fontSmoothing: "antialiased",
+          "::placeholder": { color: "#aaa" },
+          backgroundColor: "white",
+        },
+        invalid: { color: "#c0392b" },
+      },
+    });
+    cardElementRef.current.mount("#stripe-card-element");
+    cardElementRef.current.on("ready", () => setStripeReady(true));
+    cardElementRef.current.on("change", e => setCardError(e.error ? e.error.message : ""));
+  };
 
   const handlePay = async () => {
-    setError(""); setProcessing(true);
+    if (!stripeRef.current || !cardElementRef.current) return;
+    setCardError(""); setProcessing(true);
     try {
+      // 1. Créer un PaymentMethod sécurisé via Stripe.js
+      const { paymentMethod, error: pmError } = await stripeRef.current.createPaymentMethod({
+        type: "card",
+        card: cardElementRef.current,
+      });
+      if (pmError) { setCardError(pmError.message); setProcessing(false); return; }
+
+      // 2. Envoyer le PaymentMethod ID au backend
       const res = await fetch("/api/payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          paymentMethodId: paymentMethod.id,
           companyName: formData.companyName || "",
-          outputLanguage: formData.outputLanguage || "Français",
         }),
       });
       const data = await res.json();
-      if (data.url) {
-        // Sauvegarder les données du formulaire avant redirection
-        sessionStorage.setItem("lexgen_formdata", JSON.stringify(formData));
-        window.location.href = data.url;
+      if (data.error) { setCardError(data.error); setProcessing(false); return; }
+
+      // 3. Confirmer le paiement (gère 3DS automatiquement)
+      const { error: confirmError, paymentIntent } = await stripeRef.current.confirmCardPayment(
+        data.clientSecret,
+        { payment_method: paymentMethod.id }
+      );
+
+      if (confirmError) {
+        setCardError(confirmError.message);
+        setProcessing(false);
+      } else if (paymentIntent.status === "succeeded") {
+        setProcessing(false);
+        onSuccess();
       } else {
-        setError(data.error || "Erreur lors de la création du paiement.");
+        setCardError("Paiement non finalisé. Statut : " + paymentIntent.status);
         setProcessing(false);
       }
     } catch(e) {
-      setError("Erreur réseau. Veuillez réessayer.");
+      setCardError("Erreur réseau. Veuillez réessayer.");
       setProcessing(false);
     }
   };
@@ -334,16 +387,18 @@ function PaymentForm({ onCancel, formData }) {
       <div className="form-nav">
         <button className="form-nav__logo" onClick={onCancel}>Lex<span>Gen</span></button>
         <div className="form-nav__meta">
-          <span className="form-nav__step">Récapitulatif</span>
+          <span className="form-nav__step">Paiement sécurisé</span>
           <span className="form-nav__price">9 €</span>
         </div>
       </div>
       <div className="form-body">
         <div style={{textAlign:"center",marginBottom:"2rem"}}>
-          <div style={{fontSize:"2rem",marginBottom:".5rem"}}>📄</div>
-          <h2 className="form-title" style={{textAlign:"center"}}>Prêt à générer vos CGV</h2>
-          <p style={{color:"#888",fontSize:".9rem"}}>Vérifiez votre commande avant de payer</p>
+          <div style={{fontSize:"2rem",marginBottom:".5rem"}}>🔒</div>
+          <h2 className="form-title" style={{textAlign:"center"}}>Paiement sécurisé</h2>
+          <p style={{color:"#4a4035",fontSize:".9rem"}}>Vos CGV personnalisées en quelques secondes</p>
         </div>
+
+        {/* Récap commande */}
         <div className="pay-card">
           <div className="pay-card__header">
             <div>
@@ -356,22 +411,46 @@ function PaymentForm({ onCancel, formData }) {
             <span>✓ 8+ articles</span><span>✓ Conforme RGPD</span><span>✓ Livraison instantanée</span>
           </div>
         </div>
-        <div className="pay-card" style={{fontSize:".88rem",color:"#888",lineHeight:1.7}}>
-          <div style={{marginBottom:".5rem",color:"#d4b896",fontSize:".75rem",letterSpacing:".1em",textTransform:"uppercase"}}>Récapitulatif</div>
-          <div>🏢 {formData.companyName} ({formData.legalForm})</div>
-          <div>📍 {formData.address}</div>
-          <div>🛍️ {formData.productType}</div>
-          <div>🌍 {formData.countries}</div>
-          <div>💳 {formData.paymentMethods}</div>
+
+        {/* Formulaire carte */}
+        <div className="pay-card">
+          <div className="pay-label">Informations de carte</div>
+          <div id="stripe-card-element" style={{
+            padding:".875rem 1rem",
+            background:"white",
+            border:"1px solid rgba(26,20,16,.2)",
+            minHeight:48,
+            transition:"border-color .2s"
+          }}/>
+          {!stripeReady && <div style={{fontSize:".78rem",color:"#888",marginTop:".5rem"}}>Chargement...</div>}
+          {cardError && <div className="field__error" style={{marginTop:".75rem"}}>⚠ {cardError}</div>}
+          <div style={{marginTop:"1rem",fontSize:".75rem",color:"#888",display:"flex",alignItems:"center",gap:".4rem"}}>
+            🔒 Sécurisé par Stripe — vos données ne transitent jamais par nos serveurs
+          </div>
         </div>
-        {error && <div className="field__error" style={{marginBottom:"1rem"}}>⚠ {error}</div>}
-        <button className="btn btn--gold btn--full" onClick={handlePay} disabled={processing}
-          style={{opacity:processing?0.5:1,cursor:processing?"default":"pointer",fontSize:"1rem",fontWeight:700,padding:"1rem"}}>
-          {processing ? "⏳ Redirection vers Stripe..." : "💳 Payer 9,00 € en sécurité →"}
+
+        <button
+          onClick={handlePay}
+          disabled={processing || !stripeReady}
+          style={{
+            width:"100%",padding:"1rem",
+            background:processing||!stripeReady?"rgba(26,20,16,.1)":"#1a1410",
+            color:processing||!stripeReady?"rgba(26,20,16,.3)":"#f5f0e8",
+            border:"none",cursor:processing||!stripeReady?"default":"pointer",
+            fontFamily:"'EB Garamond',serif",fontSize:"1rem",fontWeight:700,
+            transition:"background .2s",marginBottom:".75rem"
+          }}>
+          {processing ? "⏳ Traitement en cours..." : "Payer 9,00 € et générer mes CGV"}
         </button>
-        <div className="pay-trust" style={{marginTop:"1rem"}}><span>🔒 Stripe Checkout</span><span>⚡ 3D Secure</span><span>🛡 100% sécurisé</span></div>
+
+        <div className="pay-trust">
+          <span>🔒 SSL 256-bit</span><span>⚡ Stripe</span><span>🛡 PCI DSS</span>
+        </div>
+
         <div style={{marginTop:"1.5rem",textAlign:"center"}}>
-          <button onClick={onCancel} style={{background:"none",border:"none",color:"#555",cursor:"pointer",fontFamily:"inherit",fontSize:".85rem"}}>← Retour au formulaire</button>
+          <button onClick={onCancel} style={{background:"none",border:"none",color:"#888",cursor:"pointer",fontFamily:"inherit",fontSize:".85rem"}}>
+            ← Retour au formulaire
+          </button>
         </div>
       </div>
     </div>
@@ -439,7 +518,7 @@ CGV complètes articles numérotés conformes directive 2011/83/UE et RGPD. Term
     setScreen("result");
   };
 
-  if (screen==="payment") return <PaymentForm formData={formData} onCancel={()=>setScreen("form")} />;
+  if (screen==="payment") return <PaymentForm formData={formData} onSuccess={generateCGV} onCancel={()=>setScreen("form")} />;
 
   if (screen==="generating") return (
     <div className="gen-page">

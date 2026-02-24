@@ -10,28 +10,24 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const { companyName, outputLanguage } = req.body;
+    const { paymentMethodId, companyName } = req.body;
 
-    const session = await stripe.checkout.sessions.create({
+    if (!paymentMethodId) {
+      return res.status(400).json({ error: "Méthode de paiement manquante." });
+    }
+
+    // Créer un PaymentIntent avec le PaymentMethod
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: 900,
+      currency: "eur",
+      payment_method: paymentMethodId,
       payment_method_types: ["card"],
-      line_items: [{
-        price_data: {
-          currency: "eur",
-          product_data: {
-            name: "Génération CGV LexGen",
-            description: `CGV personnalisées pour ${companyName || "votre entreprise"} en ${outputLanguage || "Français"}`,
-          },
-          unit_amount: 900,
-        },
-        quantity: 1,
-      }],
-      mode: "payment",
-      success_url: `${req.headers.origin}/success?session_id={CHECKOUT_SESSION_ID}&company=${encodeURIComponent(companyName || "")}`,
-      cancel_url: `${req.headers.origin}`,
-      metadata: { companyName: companyName || "", outputLanguage: outputLanguage || "Français" },
+      confirm: false, // La confirmation se fait côté client pour gérer le 3DS
+      description: `CGV LexGen — ${companyName || "Client"}`,
+      metadata: { companyName: companyName || "" },
     });
 
-    return res.status(200).json({ url: session.url });
+    return res.status(200).json({ clientSecret: paymentIntent.client_secret });
 
   } catch (err) {
     console.error("Stripe error:", err.message);
