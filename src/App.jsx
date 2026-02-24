@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 
-const STRIPE_KEY = "pk_live_51RxqHVDL6MXKKnhYL9SpgIBrjQjjf3g8hAjHschu7f2Tb19f5xxJfb41PspvGMaQh0XeGEfIXWjqmEif1jL0UqrA00SyQy65Ob";
+const STRIPE_KEY = "pk_test_51RxqHxDiHCfv0XMm4yoGqT4wj4jZlLQZBcmM6LcqF3Y10Vz1fmiA9oRHZ9jnIYg5pLLubYA8QYB4RcnVAvZ9LuTX00bEGPqjod";
 
 const STEPS = [
   { id:"company", title:"Votre entreprise", icon:"🏢", fields:[
