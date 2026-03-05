@@ -640,14 +640,16 @@ function Generator({ onBackHome }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ formData, cgvContent }),
       });
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); } catch { setEmailError(`HTTP ${res.status} – ${text.slice(0,200)}`); return; }
       if (data.success) {
         setEmailSent(true);
       } else {
         setEmailError(data.error || "Erreur inconnue");
       }
     } catch (err) {
-      setEmailError("Erreur réseau : " + err.message);
+      setEmailError("Fetch échoué : " + err.message);
     } finally {
       setEmailSending(false);
     }
