@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 
-const STRIPE_KEY = "pk_test_51RxqHxDiHCfv0XMm4yoGqT4wj4jZlLQZBcmM6LcqF3Y10Vz1fmiA9oRHZ9jnIYg5pLLubYA8QYB4RcnVAvZ9LuTX00bEGPqjod";
+// ✅ TEMPORAIRE : Clé hardcodée pour test
+// ⚠️ REMPLACEZ par votre vraie clé pk_live_... 
+const STRIPE_PUBLIC_KEY = "pk_live_51RxqHVDL6MXKKnhYL9SpgIBrjQjjf3g8hAjHschu7f2Tb19f5xxJfb41PspvGMaQh0XeGEfIXWjqmEif1jL0UqrA00SyQy65Ob";
 
 const STEPS = [
   { id:"company", title:"Votre entreprise", icon:"🏢", fields:[
@@ -336,7 +338,7 @@ const globalCss = `
 
 // ── PAYMENT FORM ──────────────────────────────
 function PaymentForm({ onSuccess, onCancel, formData }) {
-  const [method, setMethod]         = useState("card"); // "card" | "paypal"
+  const [method, setMethod]         = useState("card");
   const [cardError, setCardError]   = useState("");
   const [processing, setProcessing] = useState(false);
   const [stripeReady, setStripeReady] = useState(false);
@@ -353,7 +355,16 @@ function PaymentForm({ onSuccess, onCancel, formData }) {
   }, []);
 
   const initStripe = () => {
-    stripeRef.current = window.Stripe("pk_test_51RxqHVDL6MXKKnhYAK6jadxswsYWAfc2YmKKzyai0Jq3MJJjPk2ogy5VHqQDUnh8yEb5pXG15HLqILfpgzeuUN8N00f9uQ5zxy");
+    if (!STRIPE_PUBLIC_KEY) {
+      console.error('❌ STRIPE_PUBLIC_KEY manquante');
+      setCardError('Configuration Stripe manquante. Contactez le support.');
+      return;
+    }
+
+    console.log('🔑 Clé Stripe utilisée:', STRIPE_PUBLIC_KEY.substring(0, 20) + '...');
+    console.log('🔑 Commence par:', STRIPE_PUBLIC_KEY.substring(0, 8));
+
+    stripeRef.current = window.Stripe(STRIPE_PUBLIC_KEY);
     elementsRef.current = stripeRef.current.elements();
     cardElementRef.current = elementsRef.current.create("card", {
       hidePostalCode: true,
@@ -368,38 +379,115 @@ function PaymentForm({ onSuccess, onCancel, formData }) {
   };
 
   const handleCard = async () => {
-    if (!stripeRef.current || !cardElementRef.current) return;
-    setCardError(""); setProcessing(true);
+    if (!stripeRef.current || !cardElementRef.current) {
+      setCardError('Stripe non initialisé');
+      return;
+    }
+    
+    setCardError("");
+    setProcessing(true);
+    
     try {
-      const { paymentMethod, error: pmError } = await stripeRef.current.createPaymentMethod({ type: "card", card: cardElementRef.current });
-      if (pmError) { setCardError(pmError.message); setProcessing(false); return; }
-      const res = await fetch("/api/payment", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentMethodId: paymentMethod.id, companyName: formData.companyName || "" }),
+      console.log('💳 Création payment method...');
+      
+      const { paymentMethod, error: pmError } = await stripeRef.current.createPaymentMethod({
+        type: "card",
+        card: cardElementRef.current
       });
+      
+      if (pmError) {
+        setCardError(pmError.message);
+        setProcessing(false);
+        return;
+      }
+      
+      console.log('✅ Payment method créé:', paymentMethod.id);
+      console.log('🔄 Création payment intent...');
+      
+      const res = await fetch("/api/payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          paymentMethodId: paymentMethod.id,
+          companyName: formData.companyName || ""
+        }),
+      });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      
       const data = await res.json();
-      if (data.error) { setCardError(data.error); setProcessing(false); return; }
+      
+      if (data.error) {
+        setCardError(data.error);
+        setProcessing(false);
+        return;
+      }
+      
+      console.log('✅ Payment intent créé');
+      console.log('🔄 Confirmation paiement...');
+      
       const { error: confirmError, paymentIntent } = await stripeRef.current.confirmCardPayment(
-        data.clientSecret, { payment_method: paymentMethod.id }
+        data.clientSecret,
+        { payment_method: paymentMethod.id }
       );
-      if (confirmError) { setCardError(confirmError.message); setProcessing(false); }
-      else if (paymentIntent.status === "succeeded") { setProcessing(false); onSuccess(); }
-      else { setCardError("Statut : " + paymentIntent.status); setProcessing(false); }
-    } catch(e) { setCardError("Erreur réseau. Veuillez réessayer."); setProcessing(false); }
+      
+      if (confirmError) {
+        setCardError(confirmError.message);
+        setProcessing(false);
+        return;
+      }
+      
+      if (paymentIntent.status === "succeeded") {
+        console.log('✅ Paiement confirmé !');
+        setProcessing(false);
+        onSuccess();
+      } else {
+        setCardError(`Paiement ${paymentIntent.status}`);
+        setProcessing(false);
+      }
+      
+    } catch (error) {
+      console.error('❌ Erreur paiement:', error);
+      setCardError("Erreur réseau. Veuillez réessayer.");
+      setProcessing(false);
+    }
   };
 
   const handlePayPal = async () => {
     setProcessing(true);
+    
     try {
+      console.log('🅿️ Redirection PayPal...');
+      
       sessionStorage.setItem("lexgen_formdata", JSON.stringify(formData));
+      
       const res = await fetch("/api/paypal", {
-        method: "POST", headers: { "Content-Type": "application/json" },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ companyName: formData.companyName || "" }),
       });
+      
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
+      }
+      
       const data = await res.json();
-      if (data.approvalUrl) { window.location.href = data.approvalUrl; }
-      else { setCardError(data.error || "Erreur PayPal."); setProcessing(false); }
-    } catch(e) { setCardError("Erreur réseau. Veuillez réessayer."); setProcessing(false); }
+      
+      if (data.approvalUrl) {
+        console.log('✅ Redirection vers PayPal');
+        window.location.href = data.approvalUrl;
+      } else {
+        setCardError(data.error || "Erreur PayPal.");
+        setProcessing(false);
+      }
+      
+    } catch (error) {
+      console.error('❌ Erreur PayPal:', error);
+      setCardError("Erreur réseau. Veuillez réessayer.");
+      setProcessing(false);
+    }
   };
 
   const tabStyle = (active) => ({
@@ -543,13 +631,37 @@ function Generator({ onBackHome }) {
   const generateCGV = async () => {
     setScreen("generating");
     const date = new Date().toLocaleDateString("fr-FR");
+    
     try {
-      const prompt = `Tu es un expert juridique. Génère des CGV professionnelles complètes en ${formData.outputLanguage||"Français"} pour : Entreprise: ${formData.companyName} (${formData.legalForm}, SIRET ${formData.siret}), Adresse: ${formData.address}, Email: ${formData.email}, Produits: ${formData.productType} – ${formData.productDescription}, Pays: ${formData.countries}, Devise: ${formData.currency}, Livraison: ${formData.deliveryDelay} frais ${formData.shippingCost}, Retours: ${formData.returnPolicy} frais ${formData.returnCost}, Paiement: ${formData.paymentMethods} via ${formData.paymentProcessor}, Données: ${formData.dataProcessor}${formData.additionalClauses?`, Clauses: ${formData.additionalClauses}`:""}.
-CGV complètes articles numérotés conformes directive 2011/83/UE et RGPD. Terminer par "Document généré le ${date} – À titre informatif."`;
-      const res = await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1000,messages:[{role:"user",content:prompt}]})});
+      console.log('🔄 Appel API génération...');
+      
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ formData })
+      });
+      
+      if (!res.ok) {
+        console.warn(`⚠️ HTTP ${res.status}`);
+        throw new Error(`HTTP ${res.status}`);
+      }
+      
       const data = await res.json();
-      setResult(data.content?.map(b=>b.text||"").join("\n")||buildFallback(date));
-    } catch { setResult(buildFallback(date)); }
+      
+      if (data.error) {
+        console.warn('⚠️ Erreur API:', data.error);
+        throw new Error(data.error);
+      }
+      
+      console.log('✅ CGV générées avec succès');
+      setResult(data.content || buildFallback(date));
+      
+    } catch (error) {
+      console.error('❌ Erreur génération:', error);
+      console.log('📄 Utilisation du fallback');
+      setResult(buildFallback(date));
+    }
+    
     setScreen("result");
   };
 
