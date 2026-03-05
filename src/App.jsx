@@ -589,7 +589,9 @@ function Generator({ onBackHome }) {
   const [result, setResult]           = useState(null);
   const [copied, setCopied]           = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
-  const [emailSent, setEmailSent]     = useState(false);
+  const [emailSent, setEmailSent]       = useState(false);
+  const [emailSending, setEmailSending] = useState(false);
+  const [emailError, setEmailError]     = useState("");
 
   const step     = STEPS[currentStep];
   const progress = ((currentStep) / STEPS.length) * 100;
@@ -629,10 +631,10 @@ function Generator({ onBackHome }) {
     return cgv;
   };
 
-  // ✅ NOUVEAU : Envoi email avec CGV + facture PDF
   const sendEmail = async (cgvContent) => {
+    setEmailSending(true);
+    setEmailError("");
     try {
-      console.log('📧 Envoi email en cours...');
       const res = await fetch("/api/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -640,13 +642,14 @@ function Generator({ onBackHome }) {
       });
       const data = await res.json();
       if (data.success) {
-        console.log('✅ Email envoyé !');
         setEmailSent(true);
       } else {
-        console.warn('⚠️ Email non envoyé:', data.error);
+        setEmailError(data.error || "Erreur inconnue");
       }
     } catch (err) {
-      console.error('❌ Erreur envoi email:', err);
+      setEmailError("Erreur réseau : " + err.message);
+    } finally {
+      setEmailSending(false);
     }
   };
 
@@ -715,13 +718,24 @@ function Generator({ onBackHome }) {
           <div className="result-title">Vos CGV sont prêtes</div>
           {emailSent && (
             <div style={{fontSize:".82rem",color:"#2e7d32",marginTop:".4rem"}}>
-              📧 CGV et facture envoyées à {formData.email}
+              ✅ CGV et facture envoyées à {formData.email}
+            </div>
+          )}
+          {emailError && (
+            <div style={{fontSize:".82rem",color:"#c0392b",marginTop:".4rem"}}>
+              ⚠ Erreur email : {emailError}
             </div>
           )}
         </div>
         <div className="result-actions">
           <button onClick={()=>{navigator.clipboard.writeText(result);setCopied(true);setTimeout(()=>setCopied(false),2000);}} style={{background:copied?"#2d5a27":"#d4b896",color:copied?"#e8e4dc":"#0a0a0f"}}>{copied?"✓ Copié !":"Copier"}</button>
-          <button onClick={()=>{setCurrentStep(0);setFormData({});setSelectedMulti({});setResult(null);setScreen("form");setEmailSent(false);}} style={{background:"transparent",color:"#d4b896",border:"1px solid #d4b896"}}>Nouveau</button>
+          <button
+            onClick={()=>sendEmail(result)}
+            disabled={emailSending||emailSent}
+            style={{background:emailSent?"#e8f5e9":emailSending?"rgba(26,20,16,.1)":"#1a1410",color:emailSent?"#2e7d32":emailSending?"rgba(26,20,16,.3)":"#f5f0e8",border:"none",cursor:emailSending||emailSent?"default":"pointer",fontFamily:"inherit",fontSize:".88rem",padding:".65rem 1.25rem",borderRadius:4}}>
+            {emailSent?"✅ Email envoyé":emailSending?"⏳ Envoi...":"📧 Envoyer par email"}
+          </button>
+          <button onClick={()=>{setCurrentStep(0);setFormData({});setSelectedMulti({});setResult(null);setScreen("form");setEmailSent(false);setEmailError("");}} style={{background:"transparent",color:"#d4b896",border:"1px solid #d4b896"}}>Nouveau</button>
           <button onClick={onBackHome} style={{background:"transparent",color:"#555",border:"1px solid #333"}}>← Accueil</button>
         </div>
       </div>
