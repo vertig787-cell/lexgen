@@ -589,6 +589,7 @@ function Generator({ onBackHome }) {
   const [result, setResult]           = useState(null);
   const [copied, setCopied]           = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
+  const [emailSent, setEmailSent]     = useState(false);
 
   const step     = STEPS[currentStep];
   const progress = ((currentStep) / STEPS.length) * 100;
@@ -628,6 +629,27 @@ function Generator({ onBackHome }) {
     return cgv;
   };
 
+  // ✅ NOUVEAU : Envoi email avec CGV + facture PDF
+  const sendEmail = async (cgvContent) => {
+    try {
+      console.log('📧 Envoi email en cours...');
+      const res = await fetch("/api/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ formData, cgvContent }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        console.log('✅ Email envoyé !');
+        setEmailSent(true);
+      } else {
+        console.warn('⚠️ Email non envoyé:', data.error);
+      }
+    } catch (err) {
+      console.error('❌ Erreur envoi email:', err);
+    }
+  };
+
   const generateCGV = async () => {
     setScreen("generating");
     const date = new Date().toLocaleDateString("fr-FR");
@@ -654,12 +676,20 @@ function Generator({ onBackHome }) {
       }
       
       console.log('✅ CGV générées avec succès');
-      setResult(data.content || buildFallback(date));
+      const cgvContent = data.content || buildFallback(date);
+      setResult(cgvContent);
+
+      // ✅ Envoi email automatique après génération
+      await sendEmail(cgvContent);
       
     } catch (error) {
       console.error('❌ Erreur génération:', error);
       console.log('📄 Utilisation du fallback');
-      setResult(buildFallback(date));
+      const cgvContent = buildFallback(date);
+      setResult(cgvContent);
+
+      // ✅ Envoi email même avec le fallback
+      await sendEmail(cgvContent);
     }
     
     setScreen("result");
@@ -683,10 +713,15 @@ function Generator({ onBackHome }) {
         <div>
           <div className="result-badge">Paiement confirmé · Document généré ✓</div>
           <div className="result-title">Vos CGV sont prêtes</div>
+          {emailSent && (
+            <div style={{fontSize:".82rem",color:"#2e7d32",marginTop:".4rem"}}>
+              📧 CGV et facture envoyées à {formData.email}
+            </div>
+          )}
         </div>
         <div className="result-actions">
           <button onClick={()=>{navigator.clipboard.writeText(result);setCopied(true);setTimeout(()=>setCopied(false),2000);}} style={{background:copied?"#2d5a27":"#d4b896",color:copied?"#e8e4dc":"#0a0a0f"}}>{copied?"✓ Copié !":"Copier"}</button>
-          <button onClick={()=>{setCurrentStep(0);setFormData({});setSelectedMulti({});setResult(null);setScreen("form");}} style={{background:"transparent",color:"#d4b896",border:"1px solid #d4b896"}}>Nouveau</button>
+          <button onClick={()=>{setCurrentStep(0);setFormData({});setSelectedMulti({});setResult(null);setScreen("form");setEmailSent(false);}} style={{background:"transparent",color:"#d4b896",border:"1px solid #d4b896"}}>Nouveau</button>
           <button onClick={onBackHome} style={{background:"transparent",color:"#555",border:"1px solid #333"}}>← Accueil</button>
         </div>
       </div>
