@@ -1,7 +1,5 @@
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 function cgvToHtml(cgvContent) {
   const lines = cgvContent.split("\n");
   let html = "";
@@ -30,6 +28,7 @@ export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
+    const resend = new Resend(process.env.RESEND_API_KEY);
     let body = req.body;
     if (typeof body === "string") body = JSON.parse(body);
 
